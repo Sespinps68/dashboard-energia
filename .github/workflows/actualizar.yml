@@ -2,11 +2,13 @@ name: Actualizar datos energía
 
 on:
   schedule:
+    # Se ejecuta todos los días a las 9:00 de la mañana (hora España, UTC+1/+2)
+    # GitHub Actions usa UTC, así que 8:00 UTC = 9:00 en invierno, 10:00 en verano
     - cron: "0 8 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch: {}  # Esto permite también ejecutarlo a mano desde GitHub si quieres probarlo
 
 permissions:
-  contents: write
+  contents: write  # Necesario para que el script pueda guardar cambios en el repositorio
 
 jobs:
   actualizar:
@@ -27,6 +29,7 @@ jobs:
         env:
           DATADIS_NIF: ${{ secrets.DATADIS_NIF }}
           DATADIS_PASSWORD: ${{ secrets.DATADIS_PASSWORD }}
+          DATADIS_CUPS: ${{ secrets.DATADIS_CUPS }}
           ESIOS_TOKEN: ${{ secrets.ESIOS_TOKEN }}
         run: python actualizar_datos.py
 
