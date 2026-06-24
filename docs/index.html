@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Mi Energía</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg: #0b0f0d;
+    --panel: #121810;
+    --panel-border: #1f2a1c;
+    --sun: #ffb74a;
+    --sun-dim: #6b5226;
+    --grid: #5aa9e6;
+    --grid-dim: #2a3f52;
+    --money-pos: #6fcf6f;
+    --money-neg: #e07856;
+    --text: #eef0ea;
+    --text-dim: #8b9488;
+    --mono: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 40px;
+  }
+  header{
+    padding: 28px 20px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before{
+    content:"";
+    position:absolute;
+    top:-60px; right:-60px;
+    width:200px; height:200px;
+    background: radial-gradient(circle, rgba(255,183,74,0.18), transparent 70%);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0 0 6px;
+  }
+  h1{
+    margin:0;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  #estado-actualizacion{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .cards{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 20px;
+    margin-bottom: 18px;
+  }
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 16px 14px;
+  }
+  .card .label{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; }
+  .dot.sun{ background: var(--sun); box-shadow: 0 0 8px var(--sun); }
+  .dot.grid{ background: var(--grid); box-shadow: 0 0 8px var(--grid); }
+  .dot.pos{ background: var(--money-pos); }
+  .dot.neg{ background: var(--money-neg); }
+
+  .card .value{
+    font-size: 26px;
+    font-weight: 700;
+    margin-top: 8px;
+    letter-spacing: -0.01em;
+  }
+  .card .value small{
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dim);
+    margin-left: 3px;
+  }
+  .card.full{ grid-column: span 2; }
+  .card.money .value.pos{ color: var(--money-pos); }
+  .card.money .value.neg{ color: var(--money-neg); }
+
+  .section-title{
+    padding: 4px 20px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+  }
+  .tabs{
+    display:flex;
+    gap:6px;
+  }
+  .tab{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    background: transparent;
+    cursor:pointer;
+  }
+  .tab.active{
+    background: var(--panel);
+    color: var(--text);
+    border-color: #344029;
+  }
+
+  .chart-wrap{
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    margin: 0 20px 18px;
+    padding: 16px 12px 8px;
+    height: 220px;
+  }
+
+  .table-wrap{
+    margin: 0 20px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  table{ width:100%; border-collapse: collapse; font-size: 13px; }
+  th, td{ padding: 10px 12px; text-align: right; }
+  th:first-child, td:first-child{ text-align: left; }
+  th{
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--panel-border);
+  }
+  tr:not(:last-child) td{ border-bottom: 1px solid #161d13; }
+  td.pos{ color: var(--money-pos); }
+  td.neg{ color: var(--money-neg); }
+
+  #estado-vacio{
+    margin: 60px 20px;
+    text-align:center;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  #estado-vacio strong{ color: var(--text); display:block; margin-bottom: 6px; font-size: 16px;}
+
+  .footnote{
+    text-align:center;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--text-dim);
+    margin-top: 24px;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Torre Pacheco · ASW6000H-S2</p>
+  <h1>Mi Energía</h1>
+  <p id="estado-actualizacion">Cargando datos…</p>
+</header>
+
+<div id="contenido" style="display:none">
+
+  <div class="cards">
+    <div class="card">
+      <div class="label"><span class="dot sun"></span>Hoy consumido</div>
+      <div class="value" id="hoy-consumo">–<small>kWh</small></div>
+    </div>
+    <div class="card">
+      <div class="label"><span class="dot grid"></span>Hoy vertido</div>
+      <div class="value" id="hoy-vertido">–<small>kWh</small></div>
+    </div>
+    <div class="card money">
+      <div class="label"><span class="dot neg"></span>Gasto hoy</div>
+      <div class="value neg" id="hoy-gasto">–<small>€</small></div>
+    </div>
+    <div class="card money">
+      <div class="label"><span class="dot pos"></span>Ingreso hoy</div>
+      <div class="value pos" id="hoy-ingreso">–<small>€</small></div>
+    </div>
+    <div class="card full money">
+      <div class="label">Balance del mes</div>
+      <div class="value" id="mes-balance">–<small>€</small></div>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <span>Consumo y vertido por hora</span>
+    <div class="tabs">
+      <button class="tab active" data-rango="hoy">Hoy</button>
+      <button class="tab" data-rango="semana">7 días</button>
+      <button class="tab" data-rango="mes">Mes</button>
+    </div>
+  </div>
+  <div class="chart-wrap">
+    <canvas id="grafico-energia"></canvas>
+  </div>
+
+  <div class="section-title"><span>Coste / ingreso (€)</span></div>
+  <div class="chart-wrap">
+    <canvas id="grafico-dinero"></canvas>
+  </div>
+
+  <div class="section-title"><span>Últimos días</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Fecha</th><th>Consumo</th><th>Vertido</th><th>Balance</th></tr>
+      </thead>
+      <tbody id="tabla-dias"></tbody>
+    </table>
+  </div>
+
+  <p class="footnote">Datos vía Datadis · Precios vía ESIOS (PVPC)</p>
+</div>
+
+<div id="estado-vacio">
+  <strong>Todavía no hay datos</strong>
+  El primer informe llega cuando GitHub Actions ejecute la actualización diaria.
+</div>
+
+<script>
+const RUTA_CSV = "../data/historico.csv";
+
+async function cargarDatos() {
+  let texto;
+  try {
+    const resp = await fetch(RUTA_CSV + "?t=" + Date.now());
+    if (!resp.ok) throw new Error("CSV no encontrado");
+    texto = await resp.text();
+  } catch (e) {
+    document.getElementById("estado-vacio").style.display = "block";
+    document.getElementById("estado-actualizacion").textContent = "Sin datos todavía";
+    return;
+  }
+
+  const filas = texto.trim().split("\n").slice(1).filter(Boolean);
+  if (filas.length === 0) {
+    document.getElementById("estado-vacio").style.display = "block";
+    return;
+  }
+
+  const registros = filas.map(linea => {
+    const [fecha, hora, consumo, vertido, precio, coste, ingreso] = linea.split(",");
+    return {
+      fecha, hora,
+      consumo: parseFloat(consumo) || 0,
+      vertido: parseFloat(vertido) || 0,
+      precio: precio ? parseFloat(precio) : null,
+      coste: coste ? parseFloat(coste) : 0,
+      ingreso: ingreso ? parseFloat(ingreso) : 0,
+      fechaHora: new Date(fecha.replace(/\//g, "-") + "T" + hora)
+    };
+  }).sort((a, b) => a.fechaHora - b.fechaHora);
+
+  document.getElementById("contenido").style.display = "block";
+  document.getElementById("estado-vacio").style.display = "none";
+
+  const ultima = registros[registros.length - 1];
+  document.getElementById("estado-actualizacion").textContent =
+    "Actualizado · último dato " + ultima.fecha.replaceAll("/", "-") + " " + ultima.hora;
+
+  // --- Tarjetas de "hoy" (usamos el último día disponible en los datos) ---
+  const ultimoDia = ultima.fecha;
+  const registrosHoy = registros.filter(r => r.fecha === ultimoDia);
+  const sumaHoy = registrosHoy.reduce((acc, r) => {
+    acc.consumo += r.consumo;
+    acc.vertido += r.vertido;
+    acc.coste += r.coste;
+    acc.ingreso += r.ingreso;
+    return acc;
+  }, { consumo: 0, vertido: 0, coste: 0, ingreso: 0 });
+
+  document.getElementById("hoy-consumo").innerHTML = sumaHoy.consumo.toFixed(2) + "<small>kWh</small>";
+  document.getElementById("hoy-vertido").innerHTML = sumaHoy.vertido.toFixed(2) + "<small>kWh</small>";
+  document.getElementById("hoy-gasto").innerHTML = sumaHoy.coste.toFixed(2) + "<small>€</small>";
+  document.getElementById("hoy-ingreso").innerHTML = sumaHoy.ingreso.toFixed(2) + "<small>€</small>";
+
+  // --- Balance del mes ---
+  const mesActual = ultimoDia.slice(0, 7); // "2026/06"
+  const registrosMes = registros.filter(r => r.fecha.slice(0, 7) === mesActual);
+  const balanceMes = registrosMes.reduce((acc, r) => acc + r.ingreso - r.coste, 0);
+  const elBalance = document.getElementById("mes-balance");
+  elBalance.innerHTML = (balanceMes >= 0 ? "+" : "") + balanceMes.toFixed(2) + "<small>€</small>";
+  elBalance.className = "value " + (balanceMes >= 0 ? "pos" : "neg");
+
+  // --- Tabla de últimos días ---
+  const porDia = {};
+  registros.forEach(r => {
+    if (!porDia[r.fecha]) porDia[r.fecha] = { consumo: 0, vertido: 0, coste: 0, ingreso: 0 };
+    porDia[r.fecha].consumo += r.consumo;
+    porDia[r.fecha].vertido += r.vertido;
+    porDia[r.fecha].coste += r.coste;
+    porDia[r.fecha].ingreso += r.ingreso;
+  });
+  const diasOrdenados = Object.keys(porDia).sort().reverse().slice(0, 10);
+  const tbody = document.getElementById("tabla-dias");
+  tbody.innerHTML = diasOrdenados.map(dia => {
+    const d = porDia[dia];
+    const balance = d.ingreso - d.coste;
+    const claseBal = balance >= 0 ? "pos" : "neg";
+    return `<tr>
+      <td>${dia.slice(5).replace("/", "-")}</td>
+      <td>${d.consumo.toFixed(1)} kWh</td>
+      <td>${d.vertido.toFixed(1)} kWh</td>
+      <td class="${claseBal}">${balance >= 0 ? "+" : ""}${balance.toFixed(2)} €</td>
+    </tr>`;
+  }).join("");
+
+  // --- Gráficos ---
+  dibujarGraficos(registros, "hoy");
+
+  document.querySelectorAll(".tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      dibujarGraficos(registros, btn.dataset.rango);
+    });
+  });
+}
+
+let chartEnergia, chartDinero;
+
+function dibujarGraficos(registros, rango) {
+  const ultima = registros[registros.length - 1];
+  let filtrados, etiquetaFmt;
+
+  if (rango === "hoy") {
+    filtrados = registros.filter(r => r.fecha === ultima.fecha);
+    etiquetaFmt = r => r.hora.slice(0, 5);
+  } else if (rango === "semana") {
+    const limite = new Date(ultima.fechaHora); limite.setDate(limite.getDate() - 7);
+    const agrupado = {};
+    registros.filter(r => r.fechaHora >= limite).forEach(r => {
+      if (!agrupado[r.fecha]) agrupado[r.fecha] = { fecha: r.fecha, consumo: 0, vertido: 0, coste: 0, ingreso: 0 };
+      agrupado[r.fecha].consumo += r.consumo;
+      agrupado[r.fecha].vertido += r.vertido;
+      agrupado[r.fecha].coste += r.coste;
+      agrupado[r.fecha].ingreso += r.ingreso;
+    });
+    filtrados = Object.values(agrupado);
+    etiquetaFmt = r => r.fecha.slice(5).replace("/", "-");
+  } else {
+    const mesActual = ultima.fecha.slice(0, 7);
+    const agrupado = {};
+    registros.filter(r => r.fecha.slice(0, 7) === mesActual).forEach(r => {
+      if (!agrupado[r.fecha]) agrupado[r.fecha] = { fecha: r.fecha, consumo: 0, vertido: 0, coste: 0, ingreso: 0 };
+      agrupado[r.fecha].consumo += r.consumo;
+      agrupado[r.fecha].vertido += r.vertido;
+      agrupado[r.fecha].coste += r.coste;
+      agrupado[r.fecha].ingreso += r.ingreso;
+    });
+    filtrados = Object.values(agrupado);
+    etiquetaFmt = r => r.fecha.slice(8);
+  }
+
+  const labels = filtrados.map(etiquetaFmt);
+  const consumo = filtrados.map(r => r.consumo);
+  const vertido = filtrados.map(r => r.vertido);
+  const coste = filtrados.map(r => -r.coste);
+  const ingreso = filtrados.map(r => r.ingreso);
+
+  const opcionesComunes = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: "#8b9488", font: { size: 10.5 } } } },
+    scales: {
+      x: { ticks: { color: "#8b9488", font: { size: 10 }, maxRotation: 0 }, grid: { display: false } },
+      y: { ticks: { color: "#8b9488", font: { size: 10 } }, grid: { color: "#1a221660" } }
+    }
+  };
+
+  if (chartEnergia) chartEnergia.destroy();
+  chartEnergia = new Chart(document.getElementById("grafico-energia"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Consumo kWh", data: consumo, backgroundColor: "#ffb74a99" },
+        { label: "Vertido kWh", data: vertido, backgroundColor: "#5aa9e699" }
+      ]
+    },
+    options: opcionesComunes
+  });
+
+  if (chartDinero) chartDinero.destroy();
+  chartDinero = new Chart(document.getElementById("grafico-dinero"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Gasto €", data: coste, backgroundColor: "#e0785699" },
+        { label: "Ingreso €", data: ingreso, backgroundColor: "#6fcf6f99" }
+      ]
+    },
+    options: opcionesComunes
+  });
+}
+
+cargarDatos();
+</script>
+
+</body>
+</html>
