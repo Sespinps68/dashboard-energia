@@ -1,0 +1,41 @@
+name: Actualizar datos energía
+
+on:
+  schedule:
+    # Se ejecuta todos los días a las 9:00 de la mañana (hora España, UTC+1/+2)
+    # GitHub Actions usa UTC, así que 8:00 UTC = 9:00 en invierno, 10:00 en verano
+    - cron: "0 8 * * *"
+  workflow_dispatch: {}  # Esto permite también ejecutarlo a mano desde GitHub si quieres probarlo
+
+permissions:
+  contents: write  # Necesario para que el script pueda guardar cambios en el repositorio
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install requests
+
+      - name: Ejecutar script de actualización
+        env:
+          DATADIS_NIF: ${{ secrets.DATADIS_NIF }}
+          DATADIS_PASSWORD: ${{ secrets.DATADIS_PASSWORD }}
+          ESIOS_TOKEN: ${{ secrets.ESIOS_TOKEN }}
+        run: python actualizar_datos.py
+
+      - name: Guardar cambios en el repositorio
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add data/historico.csv
+          git diff --staged --quiet || git commit -m "Actualización automática de datos"
+          git push
