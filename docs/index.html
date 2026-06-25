@@ -7,17 +7,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
   :root{
-    --bg: #0b0f0d;
-    --panel: #121810;
-    --panel-border: #1f2a1c;
-    --sun: #ffb74a;
-    --sun-dim: #6b5226;
-    --grid: #5aa9e6;
-    --grid-dim: #2a3f52;
-    --money-pos: #6fcf6f;
-    --money-neg: #e07856;
-    --text: #eef0ea;
-    --text-dim: #8b9488;
+    --bg: #f7f8f6;
+    --panel: #ffffff;
+    --panel-border: #e5e8e2;
+    --sun: #e08a2c;
+    --grid: #3b82c4;
+    --money-pos: #2f9e51;
+    --money-neg: #d2603a;
+    --text: #1c2117;
+    --text-dim: #767f70;
     --mono: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
   }
   *{ box-sizing: border-box; }
@@ -39,7 +37,7 @@
     position:absolute;
     top:-60px; right:-60px;
     width:200px; height:200px;
-    background: radial-gradient(circle, rgba(255,183,74,0.18), transparent 70%);
+    background: radial-gradient(circle, rgba(224,138,44,0.12), transparent 70%);
     pointer-events:none;
   }
   .eyebrow{
@@ -62,6 +60,9 @@
     color: var(--text-dim);
     margin-top: 6px;
   }
+  #estado-actualizacion .aviso-retraso{
+    color: var(--sun);
+  }
 
   .cards{
     display:grid;
@@ -75,6 +76,7 @@
     border: 1px solid var(--panel-border);
     border-radius: 14px;
     padding: 16px 14px;
+    box-shadow: 0 1px 2px rgba(28,33,23,0.04);
   }
   .card .label{
     font-family: var(--mono);
@@ -87,8 +89,8 @@
     gap:6px;
   }
   .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; }
-  .dot.sun{ background: var(--sun); box-shadow: 0 0 8px var(--sun); }
-  .dot.grid{ background: var(--grid); box-shadow: 0 0 8px var(--grid); }
+  .dot.sun{ background: var(--sun); }
+  .dot.grid{ background: var(--grid); }
   .dot.pos{ background: var(--money-pos); }
   .dot.neg{ background: var(--money-neg); }
 
@@ -134,9 +136,9 @@
     cursor:pointer;
   }
   .tab.active{
-    background: var(--panel);
-    color: var(--text);
-    border-color: #344029;
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
   }
 
   .chart-wrap{
@@ -146,6 +148,7 @@
     margin: 0 20px 18px;
     padding: 16px 12px 8px;
     height: 220px;
+    box-shadow: 0 1px 2px rgba(28,33,23,0.04);
   }
 
   .table-wrap{
@@ -154,6 +157,7 @@
     border: 1px solid var(--panel-border);
     border-radius: 14px;
     overflow: hidden;
+    box-shadow: 0 1px 2px rgba(28,33,23,0.04);
   }
   table{ width:100%; border-collapse: collapse; font-size: 13px; }
   th, td{ padding: 10px 12px; text-align: right; }
@@ -166,7 +170,7 @@
     color: var(--text-dim);
     border-bottom: 1px solid var(--panel-border);
   }
-  tr:not(:last-child) td{ border-bottom: 1px solid #161d13; }
+  tr:not(:last-child) td{ border-bottom: 1px solid #eef0ea; }
   td.pos{ color: var(--money-pos); }
   td.neg{ color: var(--money-neg); }
 
@@ -185,7 +189,7 @@
     font-size: 10.5px;
     color: var(--text-dim);
     margin-top: 24px;
-    opacity: 0.6;
+    opacity: 0.8;
   }
 </style>
 </head>
@@ -201,19 +205,19 @@
 
   <div class="cards">
     <div class="card">
-      <div class="label"><span class="dot sun"></span>Hoy consumido</div>
+      <div class="label"><span class="dot sun"></span>Consumido</div>
       <div class="value" id="hoy-consumo">–<small>kWh</small></div>
     </div>
     <div class="card">
-      <div class="label"><span class="dot grid"></span>Hoy vertido</div>
+      <div class="label"><span class="dot grid"></span>Vertido</div>
       <div class="value" id="hoy-vertido">–<small>kWh</small></div>
     </div>
     <div class="card money">
-      <div class="label"><span class="dot neg"></span>Gasto hoy</div>
+      <div class="label"><span class="dot neg"></span>Gasto</div>
       <div class="value neg" id="hoy-gasto">–<small>€</small></div>
     </div>
     <div class="card money">
-      <div class="label"><span class="dot pos"></span>Ingreso hoy</div>
+      <div class="label"><span class="dot pos"></span>Ingreso</div>
       <div class="value pos" id="hoy-ingreso">–<small>€</small></div>
     </div>
     <div class="card full money">
@@ -225,7 +229,7 @@
   <div class="section-title">
     <span>Consumo y vertido por hora</span>
     <div class="tabs">
-      <button class="tab active" data-rango="hoy">Hoy</button>
+      <button class="tab active" data-rango="hoy">Último día</button>
       <button class="tab" data-rango="semana">7 días</button>
       <button class="tab" data-rango="mes">Mes</button>
     </div>
@@ -260,6 +264,15 @@
 <script>
 const RUTA_CSV = "https://raw.githubusercontent.com/Sespinps68/dashboard-energia/main/data/historico.csv";
 
+function parsearFechaHora(fecha, hora) {
+  const [anio, mes, dia] = fecha.split("/").map(Number);
+  let [h, m] = hora.split(":").map(Number);
+  if (h === 24) {
+    return new Date(anio, mes - 1, dia + 1, 0, m || 0);
+  }
+  return new Date(anio, mes - 1, dia, h, m || 0);
+}
+
 async function cargarDatos() {
   let texto;
   try {
@@ -287,7 +300,7 @@ async function cargarDatos() {
       precio: precio ? parseFloat(precio) : null,
       coste: coste ? parseFloat(coste) : 0,
       ingreso: ingreso ? parseFloat(ingreso) : 0,
-      fechaHora: new Date(fecha.replace(/\//g, "-") + "T" + hora)
+      fechaHora: parsearFechaHora(fecha, hora)
     };
   }).sort((a, b) => a.fechaHora - b.fechaHora);
 
@@ -295,13 +308,19 @@ async function cargarDatos() {
   document.getElementById("estado-vacio").style.display = "none";
 
   const ultima = registros[registros.length - 1];
-  document.getElementById("estado-actualizacion").textContent =
-    "Actualizado · último dato " + ultima.fecha.replaceAll("/", "-") + " " + ultima.hora;
 
-  // --- Tarjetas de "hoy" (usamos el último día disponible en los datos) ---
+  const ahora = new Date();
+  const hoyFmt = ahora.getFullYear() + "/" + String(ahora.getMonth()+1).padStart(2,"0") + "/" + String(ahora.getDate()).padStart(2,"0");
+  const esDeHoy = ultima.fecha === hoyFmt;
+  const etiquetaFecha = ultima.fecha.replaceAll("/", "-") + " " + ultima.hora;
+
+  document.getElementById("estado-actualizacion").innerHTML = esDeHoy
+    ? "Actualizado · último dato " + etiquetaFecha
+    : "Último dato disponible: <span class='aviso-retraso'>" + etiquetaFecha + "</span> (Datadis va 1-2 días por detrás)";
+
   const ultimoDia = ultima.fecha;
-  const registrosHoy = registros.filter(r => r.fecha === ultimoDia);
-  const sumaHoy = registrosHoy.reduce((acc, r) => {
+  const registrosUltimoDia = registros.filter(r => r.fecha === ultimoDia);
+  const sumaUltimoDia = registrosUltimoDia.reduce((acc, r) => {
     acc.consumo += r.consumo;
     acc.vertido += r.vertido;
     acc.coste += r.coste;
@@ -309,20 +328,18 @@ async function cargarDatos() {
     return acc;
   }, { consumo: 0, vertido: 0, coste: 0, ingreso: 0 });
 
-  document.getElementById("hoy-consumo").innerHTML = sumaHoy.consumo.toFixed(2) + "<small>kWh</small>";
-  document.getElementById("hoy-vertido").innerHTML = sumaHoy.vertido.toFixed(2) + "<small>kWh</small>";
-  document.getElementById("hoy-gasto").innerHTML = sumaHoy.coste.toFixed(2) + "<small>€</small>";
-  document.getElementById("hoy-ingreso").innerHTML = sumaHoy.ingreso.toFixed(2) + "<small>€</small>";
+  document.getElementById("hoy-consumo").innerHTML = sumaUltimoDia.consumo.toFixed(2) + "<small>kWh</small>";
+  document.getElementById("hoy-vertido").innerHTML = sumaUltimoDia.vertido.toFixed(2) + "<small>kWh</small>";
+  document.getElementById("hoy-gasto").innerHTML = sumaUltimoDia.coste.toFixed(2) + "<small>€</small>";
+  document.getElementById("hoy-ingreso").innerHTML = sumaUltimoDia.ingreso.toFixed(2) + "<small>€</small>";
 
-  // --- Balance del mes ---
-  const mesActual = ultimoDia.slice(0, 7); // "2026/06"
+  const mesActual = ultimoDia.slice(0, 7);
   const registrosMes = registros.filter(r => r.fecha.slice(0, 7) === mesActual);
   const balanceMes = registrosMes.reduce((acc, r) => acc + r.ingreso - r.coste, 0);
   const elBalance = document.getElementById("mes-balance");
   elBalance.innerHTML = (balanceMes >= 0 ? "+" : "") + balanceMes.toFixed(2) + "<small>€</small>";
   elBalance.className = "value " + (balanceMes >= 0 ? "pos" : "neg");
 
-  // --- Tabla de últimos días ---
   const porDia = {};
   registros.forEach(r => {
     if (!porDia[r.fecha]) porDia[r.fecha] = { consumo: 0, vertido: 0, coste: 0, ingreso: 0 };
@@ -337,15 +354,11 @@ async function cargarDatos() {
     const d = porDia[dia];
     const balance = d.ingreso - d.coste;
     const claseBal = balance >= 0 ? "pos" : "neg";
-    return `<tr>
-      <td>${dia.slice(5).replace("/", "-")}</td>
-      <td>${d.consumo.toFixed(1)} kWh</td>
-      <td>${d.vertido.toFixed(1)} kWh</td>
-      <td class="${claseBal}">${balance >= 0 ? "+" : ""}${balance.toFixed(2)} €</td>
-    </tr>`;
+    return "<tr><td>" + dia.slice(5).replace("/", "-") + "</td><td>" + d.consumo.toFixed(1) +
+      " kWh</td><td>" + d.vertido.toFixed(1) + " kWh</td><td class='" + claseBal + "'>" +
+      (balance >= 0 ? "+" : "") + balance.toFixed(2) + " €</td></tr>";
   }).join("");
 
-  // --- Gráficos ---
   dibujarGraficos(registros, "hoy");
 
   document.querySelectorAll(".tab").forEach(btn => {
@@ -367,16 +380,17 @@ function dibujarGraficos(registros, rango) {
     filtrados = registros.filter(r => r.fecha === ultima.fecha);
     etiquetaFmt = r => r.hora.slice(0, 5);
   } else if (rango === "semana") {
-    const limite = new Date(ultima.fechaHora); limite.setDate(limite.getDate() - 7);
+    const fechasUnicas = [...new Set(registros.map(r => r.fecha))].sort();
+    const ultimas7Fechas = fechasUnicas.slice(-7);
     const agrupado = {};
-    registros.filter(r => r.fechaHora >= limite).forEach(r => {
+    registros.filter(r => ultimas7Fechas.includes(r.fecha)).forEach(r => {
       if (!agrupado[r.fecha]) agrupado[r.fecha] = { fecha: r.fecha, consumo: 0, vertido: 0, coste: 0, ingreso: 0 };
       agrupado[r.fecha].consumo += r.consumo;
       agrupado[r.fecha].vertido += r.vertido;
       agrupado[r.fecha].coste += r.coste;
       agrupado[r.fecha].ingreso += r.ingreso;
     });
-    filtrados = Object.values(agrupado);
+    filtrados = ultimas7Fechas.map(f => agrupado[f]);
     etiquetaFmt = r => r.fecha.slice(5).replace("/", "-");
   } else {
     const mesActual = ultima.fecha.slice(0, 7);
@@ -388,7 +402,7 @@ function dibujarGraficos(registros, rango) {
       agrupado[r.fecha].coste += r.coste;
       agrupado[r.fecha].ingreso += r.ingreso;
     });
-    filtrados = Object.values(agrupado);
+    filtrados = Object.keys(agrupado).sort().map(f => agrupado[f]);
     etiquetaFmt = r => r.fecha.slice(8);
   }
 
@@ -401,10 +415,10 @@ function dibujarGraficos(registros, rango) {
   const opcionesComunes = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: "#8b9488", font: { size: 10.5 } } } },
+    plugins: { legend: { labels: { color: "#767f70", font: { size: 10.5 } } } },
     scales: {
-      x: { ticks: { color: "#8b9488", font: { size: 10 }, maxRotation: 0 }, grid: { display: false } },
-      y: { ticks: { color: "#8b9488", font: { size: 10 } }, grid: { color: "#1a221660" } }
+      x: { ticks: { color: "#767f70", font: { size: 10 }, maxRotation: 0 }, grid: { display: false } },
+      y: { ticks: { color: "#767f70", font: { size: 10 } }, grid: { color: "#eef0ea" } }
     }
   };
 
@@ -414,8 +428,8 @@ function dibujarGraficos(registros, rango) {
     data: {
       labels,
       datasets: [
-        { label: "Consumo kWh", data: consumo, backgroundColor: "#ffb74a99" },
-        { label: "Vertido kWh", data: vertido, backgroundColor: "#5aa9e699" }
+        { label: "Consumo kWh", data: consumo, backgroundColor: "#e08a2ccc" },
+        { label: "Vertido kWh", data: vertido, backgroundColor: "#3b82c4cc" }
       ]
     },
     options: opcionesComunes
@@ -427,8 +441,8 @@ function dibujarGraficos(registros, rango) {
     data: {
       labels,
       datasets: [
-        { label: "Gasto €", data: coste, backgroundColor: "#e0785699" },
-        { label: "Ingreso €", data: ingreso, backgroundColor: "#6fcf6f99" }
+        { label: "Gasto €", data: coste, backgroundColor: "#d2603acc" },
+        { label: "Ingreso €", data: ingreso, backgroundColor: "#2f9e51cc" }
       ]
     },
     options: opcionesComunes
