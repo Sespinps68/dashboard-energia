@@ -65,6 +65,13 @@ def obtener_consumo(token, suministro, fecha_inicio, fecha_fin):
         "pointType": suministro["pointType"]
     }
     response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 429:
+        print(f"⚠️ Límite de Datadis alcanzado para el rango {fecha_inicio}-{fecha_fin}: "
+              f"'{response.text.strip()}'. Datadis solo permite una consulta idéntica cada 24h. "
+              f"Se reintentará en la próxima ejecución diaria.")
+        return []
+
     response.raise_for_status()
     return response.json()
 
@@ -140,12 +147,13 @@ def guardar_registros(registros):
 if __name__ == "__main__":
     print("Iniciando actualización de datos...")
 
-    # Calculamos el rango: desde hace 3 meses hasta hoy, por si Datadis tenía
-    # algún día pendiente de publicar. El csv ya filtra duplicados, así que
-    # pedir de más no hace daño.
+    # Pedimos solo el mes en curso y el anterior (suficiente para rellenar el día de hoy
+    # y cualquier dato que Datadis publicase tarde del mes pasado). Pedir rangos más
+    # amplios no hace falta día a día, y además puede chocar con el límite de Datadis
+    # de "una consulta idéntica cada 24h" por cada combinación de fechas.
     hoy = datetime.now()
-    hace_3_meses = hoy - timedelta(days=90)
-    fecha_inicio = hace_3_meses.strftime("%Y/%m")
+    mes_anterior = (hoy.replace(day=1) - timedelta(days=1))
+    fecha_inicio = mes_anterior.strftime("%Y/%m")
     fecha_fin = hoy.strftime("%Y/%m")
 
     print("Conectando a Datadis...")
@@ -158,7 +166,7 @@ if __name__ == "__main__":
     print(f"Registros de consumo recibidos: {len(consumo_datos)}")
 
     print("Descargando precios PVPC de ESIOS...")
-    fecha_inicio_iso = hace_3_meses.strftime("%Y-%m-%d")
+    fecha_inicio_iso = mes_anterior.strftime("%Y-%m-%d")
     fecha_fin_iso = hoy.strftime("%Y-%m-%d")
     try:
         precios = obtener_precios_pvpc(fecha_inicio_iso, fecha_fin_iso)
