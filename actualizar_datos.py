@@ -20,6 +20,11 @@ NIF = os.environ["DATADIS_NIF"]
 PASSWORD = os.environ["DATADIS_PASSWORD"]
 CUPS_OBJETIVO = os.environ["DATADIS_CUPS"]  # El suministro de Torre Pacheco (con la instalación solar)
 
+# Tarifa de precio FIJO (no PVPC). Si en el futuro cambias a una tarifa con
+# precio variable por hora, aquí es donde habría que ajustar el cálculo.
+PRECIO_COMPRA_EUR_KWH = 0.115  # lo que pagas por cada kWh consumido de la red
+PRECIO_VENTA_EUR_KWH = 0.06   # lo que te pagan por cada kWh vertido a la red
+
 BASE_URL_DATADIS = "https://datadis.es"
 RUTA_CSV = "data/historico.csv"
 
@@ -77,43 +82,6 @@ def obtener_consumo(token, suministro, fecha_inicio, fecha_fin):
 
 
 # ----------------------------
-# ESIOS / REE - Precios PVPC
-# ----------------------------
-
-def obtener_precios_pvpc(fecha_inicio, fecha_fin):
-    """
-    Descarga precios horarios PVPC desde la API de ESIOS (Red Eléctrica).
-    Necesita un token personal gratuito, pedido por email a consultasios@ree.es
-    (ver instrucciones). Se lee del secret ESIOS_TOKEN.
-    Devuelve un diccionario {("2026/05/01", "01:00"): precio_eur_kwh, ...}
-    """
-    esios_token = os.environ.get("ESIOS_TOKEN")
-    if not esios_token:
-        raise Exception("Falta el secret ESIOS_TOKEN (token personal de la API de ESIOS)")
-
-    url = "https://api.esios.ree.es/indicators/1001"  # Indicador PVPC término de energía
-    headers = {
-        "Accept": "application/json; application/vnd.esios-api-v1+json",
-        "Content-Type": "application/json",
-        "Authorization": f'Token token="{esios_token}"'
-    }
-    params = {
-        "start_date": f"{fecha_inicio}T00:00:00",
-        "end_date": f"{fecha_fin}T23:59:59"
-    }
-    response = requests.get(url, headers=headers, params=params)
-    response.raise_for_status()
-    datos = response.json()
-
-    precios = {}
-    for valor in datos.get("indicator", {}).get("values", []):
-        dt = datetime.fromisoformat(valor["datetime"])
-        clave = (dt.strftime("%Y/%m/%d"), dt.strftime("%H:00"))
-        precios[clave] = valor["value"] / 1000  # ESIOS da €/MWh, lo pasamos a €/kWh
-    return precios
-
-
-# ----------------------------
 # CSV - Guardar histórico sin duplicar
 # ----------------------------
 
@@ -165,16 +133,6 @@ if __name__ == "__main__":
     consumo_datos = obtener_consumo(token, suministro, fecha_inicio, fecha_fin)
     print(f"Registros de consumo recibidos: {len(consumo_datos)}")
 
-    print("Descargando precios PVPC de ESIOS...")
-    fecha_inicio_iso = mes_anterior.strftime("%Y-%m-%d")
-    fecha_fin_iso = hoy.strftime("%Y-%m-%d")
-    try:
-        precios = obtener_precios_pvpc(fecha_inicio_iso, fecha_fin_iso)
-        print(f"Precios PVPC recibidos: {len(precios)} franjas horarias")
-    except Exception as e:
-        print(f"⚠️ No se pudieron descargar precios PVPC: {e}")
-        precios = {}
-
     existentes = cargar_fechas_existentes()
     nuevos_registros = []
 
@@ -185,17 +143,16 @@ if __name__ == "__main__":
 
         consumo_kwh = registro.get("consumptionKWh") or 0
         vertido_kwh = registro.get("surplusEnergyKWh") or 0
-        precio = precios.get(clave)
 
-        coste_eur = round(consumo_kwh * precio, 4) if precio is not None else ""
-        ingreso_eur = round(vertido_kwh * precio, 4) if precio is not None else ""
+        coste_eur = round(consumo_kwh * PRECIO_COMPRA_EUR_KWH, 4)
+        ingreso_eur = round(vertido_kwh * PRECIO_VENTA_EUR_KWH, 4)
 
         nuevos_registros.append({
             "fecha": registro["date"],
             "hora": registro["time"],
             "consumo_kwh": consumo_kwh,
             "vertido_kwh": vertido_kwh,
-            "precio_eur_kwh": precio if precio is not None else "",
+            "precio_eur_kwh": "",  # ya no aplica con tarifa fija; se deja vacío por compatibilidad
             "coste_eur": coste_eur,
             "ingreso_eur": ingreso_eur
         })
