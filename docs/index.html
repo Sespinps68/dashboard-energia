@@ -4,453 +4,373 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Mi Energía</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2/dist/chartjs-plugin-zoom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2/hammer.min.js"></script>
 <style>
-  :root{
-    --bg: #f7f8f6;
-    --panel: #ffffff;
-    --panel-border: #e5e8e2;
-    --sun: #e08a2c;
-    --grid: #3b82c4;
-    --money-pos: #2f9e51;
-    --money-neg: #d2603a;
-    --text: #1c2117;
-    --text-dim: #767f70;
-    --mono: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
-  }
-  *{ box-sizing: border-box; }
-  body{
-    margin:0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    padding-bottom: 40px;
-  }
-  header{
-    padding: 28px 20px 18px;
-    position: relative;
-    overflow: hidden;
-  }
-  header::before{
-    content:"";
-    position:absolute;
-    top:-60px; right:-60px;
-    width:200px; height:200px;
-    background: radial-gradient(circle, rgba(224,138,44,0.12), transparent 70%);
-    pointer-events:none;
-  }
-  .eyebrow{
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin: 0 0 6px;
-  }
-  h1{
-    margin:0;
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-  #estado-actualizacion{
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-top: 6px;
-  }
-  #estado-actualizacion .aviso-retraso{
-    color: var(--sun);
-  }
-
-  .cards{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 0 20px;
-    margin-bottom: 18px;
-  }
-  .card{
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 14px;
-    padding: 16px 14px;
-    box-shadow: 0 1px 2px rgba(28,33,23,0.04);
-  }
-  .card .label{
-    font-family: var(--mono);
-    font-size: 10.5px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    display:flex;
-    align-items:center;
-    gap:6px;
-  }
-  .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; }
-  .dot.sun{ background: var(--sun); }
-  .dot.grid{ background: var(--grid); }
-  .dot.pos{ background: var(--money-pos); }
-  .dot.neg{ background: var(--money-neg); }
-
-  .card .value{
-    font-size: 26px;
-    font-weight: 700;
-    margin-top: 8px;
-    letter-spacing: -0.01em;
-  }
-  .card .value small{
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-dim);
-    margin-left: 3px;
-  }
-  .card.full{ grid-column: span 2; }
-  .card.money .value.pos{ color: var(--money-pos); }
-  .card.money .value.neg{ color: var(--money-neg); }
-
-  .section-title{
-    padding: 4px 20px 10px;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    display:flex;
-    justify-content: space-between;
-    align-items:center;
-  }
-  .tabs{
-    display:flex;
-    gap:6px;
-  }
-  .tab{
-    font-family: var(--mono);
-    font-size: 10.5px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--panel-border);
-    color: var(--text-dim);
-    background: transparent;
-    cursor:pointer;
-  }
-  .tab.active{
-    background: var(--text);
-    color: #fff;
-    border-color: var(--text);
-  }
-
-  .chart-wrap{
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 14px;
-    margin: 0 20px 18px;
-    padding: 16px 12px 8px;
-    height: 220px;
-    box-shadow: 0 1px 2px rgba(28,33,23,0.04);
-  }
-
-  .table-wrap{
-    margin: 0 20px;
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 1px 2px rgba(28,33,23,0.04);
-  }
-  table{ width:100%; border-collapse: collapse; font-size: 13px; }
-  th, td{ padding: 10px 12px; text-align: right; }
-  th:first-child, td:first-child{ text-align: left; }
-  th{
-    font-family: var(--mono);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-dim);
-    border-bottom: 1px solid var(--panel-border);
-  }
-  tr:not(:last-child) td{ border-bottom: 1px solid #eef0ea; }
-  td.pos{ color: var(--money-pos); }
-  td.neg{ color: var(--money-neg); }
-
-  #estado-vacio{
-    margin: 60px 20px;
-    text-align:center;
-    color: var(--text-dim);
-    font-size: 14px;
-    line-height: 1.6;
-  }
-  #estado-vacio strong{ color: var(--text); display:block; margin-bottom: 6px; font-size: 16px;}
-
-  .footnote{
-    text-align:center;
-    font-family: var(--mono);
-    font-size: 10.5px;
-    color: var(--text-dim);
-    margin-top: 24px;
-    opacity: 0.8;
-  }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f5f6f4;color:#1c2117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding-bottom:40px}
+header{padding:24px 20px 16px;background:#fff;border-bottom:1px solid #e5e8e2;margin-bottom:16px}
+.eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#767f70;margin-bottom:4px;font-family:ui-monospace,monospace}
+h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
+#estado{font-size:12px;color:#767f70;margin-top:4px;font-family:ui-monospace,monospace}
+#estado .retraso{color:#e08a2c}
+.wrap{padding:0 16px}
+.pbar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.pbar button{font-size:13px;padding:5px 13px;border-radius:8px;border:1px solid #d0d4cc;background:transparent;color:#5a5f55;cursor:pointer;transition:all .15s}
+.pbar button.active{background:#1c2117;color:#fff;border-color:#1c2117}
+.pbar select,.pbar input[type=date]{font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid #d0d4cc;color:#1c2117;background:#fff}
+.pbar .sep{color:#aaa;font-size:12px;padding:0 2px}
+.agrup{display:flex;gap:4px;margin-bottom:14px;align-items:center}
+.agrup span{font-size:11px;color:#767f70;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+.agrup button{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid #d0d4cc;background:transparent;color:#5a5f55;cursor:pointer}
+.agrup button.active{background:#e5e8e2;color:#1c2117;border-color:#b0b8a8}
+.krow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.kpi{background:#fff;border-radius:12px;padding:12px 14px;border:1px solid #e5e8e2}
+.kpi .lbl{font-size:11px;color:#767f70;margin-bottom:4px;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.05em}
+.kpi .val{font-size:20px;font-weight:600;color:#1c2117}
+.kpi .val.pos{color:#1baf7a}.kpi .val.neg{color:#e34948}
+.kpi .sub{font-size:10px;color:#aaa;margin-top:2px}
+.crow{display:grid;grid-template-columns:1fr 1.5fr;gap:12px;margin-bottom:14px}
+.cc{background:#fff;border-radius:12px;padding:14px;border:1px solid #e5e8e2}
+.cc h3{font-size:12px;font-weight:500;color:#767f70;margin-bottom:10px;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em}
+.leg{display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.leg span{display:flex;align-items:center;gap:4px;font-size:11px;color:#5a5f55}
+.ld{width:9px;height:9px;border-radius:2px;display:inline-block;flex-shrink:0}
+.dw{position:relative;height:190px}
+.dw.donut{display:flex;align-items:center;justify-content:center}
+.dc{position:absolute;text-align:center;pointer-events:none}
+.dc .dcv{font-size:16px;font-weight:600;color:#1c2117}
+.dc .dcl{font-size:10px;color:#767f70}
+.zoom-hint{font-size:10px;color:#aaa;text-align:right;margin-top:4px;font-family:ui-monospace,monospace}
+.erow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ec{background:#fff;border-radius:12px;padding:14px;border:1px solid #e5e8e2}
+.ec h3{font-size:11px;color:#767f70;margin-bottom:10px;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em}
+.er{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f0f2ee}
+.er:last-child{border-bottom:none}
+.er .el{font-size:12px;color:#5a5f55}.er .ed{font-size:10px;color:#aaa}
+.er .ev{font-size:14px;font-weight:600}
+#vacio{text-align:center;padding:60px 20px;color:#767f70}
+#vacio strong{display:block;color:#1c2117;font-size:16px;margin-bottom:8px}
+.footer{text-align:center;font-size:10px;color:#bbb;margin-top:20px;font-family:ui-monospace,monospace}
+@media(max-width:540px){.krow{grid-template-columns:repeat(2,1fr)}.crow,.erow{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
 <header>
   <p class="eyebrow">Torre Pacheco · ASW6000H-S2</p>
   <h1>Mi Energía</h1>
-  <p id="estado-actualizacion">Cargando datos…</p>
+  <p id="estado">Cargando datos…</p>
 </header>
 
-<div id="contenido" style="display:none">
+<div id="vacio" style="display:none"><strong>Sin datos todavía</strong>La actualización automática llega cada día a las 6:00.</div>
 
-  <div class="cards">
-    <div class="card">
-      <div class="label"><span class="dot sun"></span>Consumido</div>
-      <div class="value" id="hoy-consumo">–<small>kWh</small></div>
+<div id="app" class="wrap" style="display:none">
+  <div class="pbar" id="pbar">
+    <button class="active" data-p="semana" onclick="clickP(this)">Semana</button>
+    <button data-p="mes" onclick="clickP(this)">Mes</button>
+    <button data-p="dia" onclick="clickP(this)">Día</button>
+    <button data-p="periodo" onclick="clickP(this)">Periodo libre</button>
+    <span id="extra"></span>
+  </div>
+  <div class="agrup" id="agrup-wrap" style="display:none">
+    <span>Ver por</span>
+    <button class="active" data-g="dia" onclick="clickG(this)">Días</button>
+    <button data-g="semana" onclick="clickG(this)">Semanas</button>
+    <button data-g="mes" onclick="clickG(this)">Meses</button>
+  </div>
+  <div class="krow">
+    <div class="kpi"><div class="lbl">Gasto</div><div class="val neg" id="kg">—</div><div class="sub" id="kgs"></div></div>
+    <div class="kpi"><div class="lbl">Ingreso</div><div class="val pos" id="ki">—</div><div class="sub" id="kis"></div></div>
+    <div class="kpi"><div class="lbl">Balance</div><div class="val" id="kb">—</div><div class="sub">ingreso − gasto</div></div>
+    <div class="kpi"><div class="lbl">Consumo red</div><div class="val" id="kc">—</div></div>
+    <div class="kpi"><div class="lbl">Vertido red</div><div class="val" id="kv">—</div></div>
+  </div>
+  <div class="crow">
+    <div class="cc">
+      <h3>Reparto económico</h3>
+      <div class="leg"><span><span class="ld" style="background:#e34948"></span><span id="lg">Gasto</span></span><span><span class="ld" style="background:#1baf7a"></span><span id="li">Ingreso</span></span></div>
+      <div class="dw donut">
+        <canvas id="ch1" width="180" height="180" role="img" aria-label="Donut reparto económico">Reparto gasto/ingreso</canvas>
+        <div class="dc"><div class="dcv" id="dcb">—</div><div class="dcl">balance</div></div>
+      </div>
     </div>
-    <div class="card">
-      <div class="label"><span class="dot grid"></span>Vertido</div>
-      <div class="value" id="hoy-vertido">–<small>kWh</small></div>
-    </div>
-    <div class="card money">
-      <div class="label"><span class="dot neg"></span>Gasto</div>
-      <div class="value neg" id="hoy-gasto">–<small>€</small></div>
-    </div>
-    <div class="card money">
-      <div class="label"><span class="dot pos"></span>Ingreso</div>
-      <div class="value pos" id="hoy-ingreso">–<small>€</small></div>
-    </div>
-    <div class="card full money">
-      <div class="label">Balance del mes</div>
-      <div class="value" id="mes-balance">–<small>€</small></div>
+    <div class="cc">
+      <h3>Gasto e ingreso por periodo</h3>
+      <div class="leg"><span><span class="ld" style="background:#e34948"></span>Gasto €</span><span><span class="ld" style="background:#1baf7a"></span>Ingreso €</span><span style="color:#bbb;font-size:10px">■ máx · ░ mín</span></div>
+      <div class="dw"><canvas id="ch2" role="img" aria-label="Barras gasto e ingreso">Barras diarias</canvas></div>
+      <p class="zoom-hint">↔ arrastra para hacer zoom · doble clic para resetear</p>
     </div>
   </div>
-
-  <div class="section-title">
-    <span>Consumo y vertido por hora</span>
-    <div class="tabs">
-      <button class="tab active" data-rango="hoy">Último día</button>
-      <button class="tab" data-rango="semana">7 días</button>
-      <button class="tab" data-rango="mes">Mes</button>
+  <div class="erow">
+    <div class="ec">
+      <h3>Extremos de gasto</h3>
+      <div class="er"><div><div class="el">Período más caro</div><div class="ed" id="egmd">—</div></div><div class="ev neg" id="egmv">—</div></div>
+      <div class="er"><div><div class="el">Período más barato</div><div class="ed" id="egnmd">—</div></div><div class="ev pos" id="egnmv">—</div></div>
+    </div>
+    <div class="ec">
+      <h3>Extremos de ingreso</h3>
+      <div class="er"><div><div class="el">Mejor período</div><div class="ed" id="eimd">—</div></div><div class="ev pos" id="eimv">—</div></div>
+      <div class="er"><div><div class="el">Peor período</div><div class="ed" id="einmd">—</div></div><div class="ev neg" id="einmv">—</div></div>
     </div>
   </div>
-  <div class="chart-wrap">
-    <canvas id="grafico-energia"></canvas>
-  </div>
-
-  <div class="section-title"><span>Coste / ingreso (€)</span></div>
-  <div class="chart-wrap">
-    <canvas id="grafico-dinero"></canvas>
-  </div>
-
-  <div class="section-title"><span>Últimos días</span></div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Fecha</th><th>Consumo</th><th>Vertido</th><th>Balance</th></tr>
-      </thead>
-      <tbody id="tabla-dias"></tbody>
-    </table>
-  </div>
-
-  <p class="footnote">Datos vía Datadis · Precios vía ESIOS (PVPC)</p>
-</div>
-
-<div id="estado-vacio">
-  <strong>Todavía no hay datos</strong>
-  El primer informe llega cuando GitHub Actions ejecute la actualización diaria.
+  <p class="footer">Datos vía Datadis · i-DE · Actualización automática diaria</p>
 </div>
 
 <script>
-const RUTA_CSV = "https://raw.githubusercontent.com/Sespinps68/dashboard-energia/main/data/historico.csv";
+const CSV_URL = "https://raw.githubusercontent.com/Sespinps68/dashboard-energia/main/data/historico.csv";
+const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-function parsearFechaHora(fecha, hora) {
-  const [anio, mes, dia] = fecha.split("/").map(Number);
-  let [h, m] = hora.split(":").map(Number);
-  if (h === 24) {
-    return new Date(anio, mes - 1, dia + 1, 0, m || 0);
-  }
-  return new Date(anio, mes - 1, dia, h, m || 0);
-}
+let RAW = {}; // {fecha: [consumo, vertido, coste, ingreso]}
+let DIAS = [];
+let modo = 'semana', agrup = 'dia';
+let C1 = null, C2 = null;
 
-async function cargarDatos() {
-  let texto;
-  try {
-    const resp = await fetch(RUTA_CSV + "?t=" + Date.now());
-    if (!resp.ok) throw new Error("CSV no encontrado");
-    texto = await resp.text();
-  } catch (e) {
-    document.getElementById("estado-vacio").style.display = "block";
-    document.getElementById("estado-actualizacion").textContent = "Sin datos todavía";
-    return;
-  }
+function ff(f){ const[a,m,d]=f.split('/'); return `${parseInt(d)} ${MN[parseInt(m)-1]}`; }
+function fm(ym){ const[a,m]=ym.split('/'); return `${MN[parseInt(m)-1]} ${a}`; }
+function eur(v){ return v.toFixed(2).replace('.',',')+'&nbsp;€'; }
+function kwh(v){ return v.toFixed(1).replace('.',',')+'&nbsp;kWh'; }
 
-  const filas = texto.trim().split("\n").slice(1).filter(Boolean);
-  if (filas.length === 0) {
-    document.getElementById("estado-vacio").style.display = "block";
-    return;
-  }
+// ── Agrupación dinámica ────────────────────────────────────────
+function agrupar(dias, tipo){
+  if(tipo==='dia') return dias.map(d=>({key:d, label:ff(d), data:[...RAW[d]]}));
 
-  const registros = filas.map(linea => {
-    const [fecha, hora, consumo, vertido, precio, coste, ingreso] = linea.split(",");
-    return {
-      fecha, hora,
-      consumo: parseFloat(consumo) || 0,
-      vertido: parseFloat(vertido) || 0,
-      precio: precio ? parseFloat(precio) : null,
-      coste: coste ? parseFloat(coste) : 0,
-      ingreso: ingreso ? parseFloat(ingreso) : 0,
-      fechaHora: parsearFechaHora(fecha, hora)
-    };
-  }).sort((a, b) => a.fechaHora - b.fechaHora);
-
-  document.getElementById("contenido").style.display = "block";
-  document.getElementById("estado-vacio").style.display = "none";
-
-  const ultima = registros[registros.length - 1];
-
-  const ahora = new Date();
-  const hoyFmt = ahora.getFullYear() + "/" + String(ahora.getMonth()+1).padStart(2,"0") + "/" + String(ahora.getDate()).padStart(2,"0");
-  const esDeHoy = ultima.fecha === hoyFmt;
-  const etiquetaFecha = ultima.fecha.replaceAll("/", "-") + " " + ultima.hora;
-
-  document.getElementById("estado-actualizacion").innerHTML = esDeHoy
-    ? "Actualizado · último dato " + etiquetaFecha
-    : "Último dato disponible: <span class='aviso-retraso'>" + etiquetaFecha + "</span> (Datadis va 1-2 días por detrás)";
-
-  const ultimoDia = ultima.fecha;
-  const registrosUltimoDia = registros.filter(r => r.fecha === ultimoDia);
-  const sumaUltimoDia = registrosUltimoDia.reduce((acc, r) => {
-    acc.consumo += r.consumo;
-    acc.vertido += r.vertido;
-    acc.coste += r.coste;
-    acc.ingreso += r.ingreso;
-    return acc;
-  }, { consumo: 0, vertido: 0, coste: 0, ingreso: 0 });
-
-  document.getElementById("hoy-consumo").innerHTML = sumaUltimoDia.consumo.toFixed(2) + "<small>kWh</small>";
-  document.getElementById("hoy-vertido").innerHTML = sumaUltimoDia.vertido.toFixed(2) + "<small>kWh</small>";
-  document.getElementById("hoy-gasto").innerHTML = sumaUltimoDia.coste.toFixed(2) + "<small>€</small>";
-  document.getElementById("hoy-ingreso").innerHTML = sumaUltimoDia.ingreso.toFixed(2) + "<small>€</small>";
-
-  const mesActual = ultimoDia.slice(0, 7);
-  const registrosMes = registros.filter(r => r.fecha.slice(0, 7) === mesActual);
-  const balanceMes = registrosMes.reduce((acc, r) => acc + r.ingreso - r.coste, 0);
-  const elBalance = document.getElementById("mes-balance");
-  elBalance.innerHTML = (balanceMes >= 0 ? "+" : "") + balanceMes.toFixed(2) + "<small>€</small>";
-  elBalance.className = "value " + (balanceMes >= 0 ? "pos" : "neg");
-
-  const porDia = {};
-  registros.forEach(r => {
-    if (!porDia[r.fecha]) porDia[r.fecha] = { consumo: 0, vertido: 0, coste: 0, ingreso: 0 };
-    porDia[r.fecha].consumo += r.consumo;
-    porDia[r.fecha].vertido += r.vertido;
-    porDia[r.fecha].coste += r.coste;
-    porDia[r.fecha].ingreso += r.ingreso;
-  });
-  const diasOrdenados = Object.keys(porDia).sort().reverse().slice(0, 10);
-  const tbody = document.getElementById("tabla-dias");
-  tbody.innerHTML = diasOrdenados.map(dia => {
-    const d = porDia[dia];
-    const balance = d.ingreso - d.coste;
-    const claseBal = balance >= 0 ? "pos" : "neg";
-    return "<tr><td>" + dia.slice(5).replace("/", "-") + "</td><td>" + d.consumo.toFixed(1) +
-      " kWh</td><td>" + d.vertido.toFixed(1) + " kWh</td><td class='" + claseBal + "'>" +
-      (balance >= 0 ? "+" : "") + balance.toFixed(2) + " €</td></tr>";
-  }).join("");
-
-  dibujarGraficos(registros, "hoy");
-
-  document.querySelectorAll(".tab").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      dibujarGraficos(registros, btn.dataset.rango);
-    });
-  });
-}
-
-let chartEnergia, chartDinero;
-
-function dibujarGraficos(registros, rango) {
-  const ultima = registros[registros.length - 1];
-  let filtrados, etiquetaFmt;
-
-  if (rango === "hoy") {
-    filtrados = registros.filter(r => r.fecha === ultima.fecha);
-    etiquetaFmt = r => r.hora.slice(0, 5);
-  } else if (rango === "semana") {
-    const fechasUnicas = [...new Set(registros.map(r => r.fecha))].sort();
-    const ultimas7Fechas = fechasUnicas.slice(-7);
-    const agrupado = {};
-    registros.filter(r => ultimas7Fechas.includes(r.fecha)).forEach(r => {
-      if (!agrupado[r.fecha]) agrupado[r.fecha] = { fecha: r.fecha, consumo: 0, vertido: 0, coste: 0, ingreso: 0 };
-      agrupado[r.fecha].consumo += r.consumo;
-      agrupado[r.fecha].vertido += r.vertido;
-      agrupado[r.fecha].coste += r.coste;
-      agrupado[r.fecha].ingreso += r.ingreso;
-    });
-    filtrados = ultimas7Fechas.map(f => agrupado[f]);
-    etiquetaFmt = r => r.fecha.slice(5).replace("/", "-");
-  } else {
-    const mesActual = ultima.fecha.slice(0, 7);
-    const agrupado = {};
-    registros.filter(r => r.fecha.slice(0, 7) === mesActual).forEach(r => {
-      if (!agrupado[r.fecha]) agrupado[r.fecha] = { fecha: r.fecha, consumo: 0, vertido: 0, coste: 0, ingreso: 0 };
-      agrupado[r.fecha].consumo += r.consumo;
-      agrupado[r.fecha].vertido += r.vertido;
-      agrupado[r.fecha].coste += r.coste;
-      agrupado[r.fecha].ingreso += r.ingreso;
-    });
-    filtrados = Object.keys(agrupado).sort().map(f => agrupado[f]);
-    etiquetaFmt = r => r.fecha.slice(8);
-  }
-
-  const labels = filtrados.map(etiquetaFmt);
-  const consumo = filtrados.map(r => r.consumo);
-  const vertido = filtrados.map(r => r.vertido);
-  const coste = filtrados.map(r => -r.coste);
-  const ingreso = filtrados.map(r => r.ingreso);
-
-  const opcionesComunes = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: "#767f70", font: { size: 10.5 } } } },
-    scales: {
-      x: { ticks: { color: "#767f70", font: { size: 10 }, maxRotation: 0 }, grid: { display: false } },
-      y: { ticks: { color: "#767f70", font: { size: 10 } }, grid: { color: "#eef0ea" } }
-    }
+  const grupos = {};
+  const getKey = d => {
+    if(tipo==='mes') return d.slice(0,7);
+    // semana ISO: lunes de esa semana
+    const dt = new Date(d.replace(/\//g,'-'));
+    const day = dt.getDay()||7;
+    dt.setDate(dt.getDate()-day+1);
+    return dt.toISOString().slice(0,10).replace(/-/g,'/');
   };
-
-  if (chartEnergia) chartEnergia.destroy();
-  chartEnergia = new Chart(document.getElementById("grafico-energia"), {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        { label: "Consumo kWh", data: consumo, backgroundColor: "#e08a2ccc" },
-        { label: "Vertido kWh", data: vertido, backgroundColor: "#3b82c4cc" }
-      ]
-    },
-    options: opcionesComunes
+  dias.forEach(d=>{
+    const k = getKey(d);
+    if(!grupos[k]) grupos[k]={key:k, label:'', data:[0,0,0,0], dias:[]};
+    grupos[k].dias.push(d);
+    const r=RAW[d];
+    grupos[k].data=grupos[k].data.map((v,i)=>+(v+r[i]).toFixed(2));
   });
-
-  if (chartDinero) chartDinero.destroy();
-  chartDinero = new Chart(document.getElementById("grafico-dinero"), {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        { label: "Gasto €", data: coste, backgroundColor: "#d2603acc" },
-        { label: "Ingreso €", data: ingreso, backgroundColor: "#2f9e51cc" }
-      ]
-    },
-    options: opcionesComunes
+  Object.values(grupos).forEach(g=>{
+    if(tipo==='mes') g.label=fm(g.key);
+    else g.label=`${ff(g.dias[0])}–${ff(g.dias[g.dias.length-1])}`;
   });
+  return Object.values(grupos).sort((a,b)=>a.key.localeCompare(b.key));
 }
 
-cargarDatos();
-</script>
+// ── Filtrar días según el periodo seleccionado ─────────────────
+function filtraDias(key){
+  if(modo==='semana'){
+    // semanas del histórico
+    const sems=[];
+    for(let i=0;i<DIAS.length;i+=7) sems.push(DIAS.slice(i,i+7));
+    return sems[parseInt(key)]||[];
+  }
+  if(modo==='mes') return DIAS.filter(d=>d.startsWith(key));
+  if(modo==='dia') return [key];
+  if(modo==='periodo'){const[d1,d2]=key.split('|');return DIAS.filter(d=>d>=d1&&d<=d2);}
+  return [];
+}
 
+// ── Render principal ───────────────────────────────────────────
+function render(key){
+  const dias = filtraDias(key);
+  if(!dias.length) return;
+
+  // Agrupación
+  const grupos = agrupar(dias, agrup);
+  const tG=grupos.reduce((s,g)=>s+g.data[2],0);
+  const tI=grupos.reduce((s,g)=>s+g.data[3],0);
+  const tC=grupos.reduce((s,g)=>s+g.data[0],0);
+  const tV=grupos.reduce((s,g)=>s+g.data[1],0);
+  const bal=tI-tG;
+  const sub=dias.length===1?ff(dias[0]):`${ff(dias[0])} – ${ff(dias[dias.length-1])}`;
+
+  // KPIs
+  document.getElementById('kg').innerHTML=eur(tG);
+  document.getElementById('kgs').textContent=sub;
+  document.getElementById('ki').innerHTML=eur(tI);
+  document.getElementById('kis').textContent=sub;
+  const kb=document.getElementById('kb');
+  kb.innerHTML=(bal>=0?'+':'')+eur(bal);
+  kb.className='val '+(bal>=0?'pos':'neg');
+  document.getElementById('kc').innerHTML=kwh(tC);
+  document.getElementById('kv').innerHTML=kwh(tV);
+  document.getElementById('dcb').innerHTML=(bal>=0?'+':'')+eur(bal);
+  const tot=tG+tI||0.001;
+  document.getElementById('lg').innerHTML=`Gasto ${eur(tG)} (${Math.round(tG/tot*100)}%)`;
+  document.getElementById('li').innerHTML=`Ingreso ${eur(tI)} (${Math.round(tI/tot*100)}%)`;
+
+  // Donut
+  if(C1) C1.destroy();
+  C1=new Chart(document.getElementById('ch1'),{
+    type:'doughnut',
+    data:{labels:['Gasto','Ingreso'],datasets:[{data:[+tG.toFixed(2),+tI.toFixed(2)],backgroundColor:['#e34948','#1baf7a'],borderWidth:0,hoverOffset:6}]},
+    options:{responsive:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.toFixed(2).replace('.',',')+' €'}}}}
+  });
+
+  // Barras con zoom
+  const maxG=Math.max(...grupos.map(g=>g.data[2]));
+  const minG=Math.min(...grupos.map(g=>g.data[2]));
+  const maxI=Math.max(...grupos.map(g=>g.data[3]));
+  const minI=Math.min(...grupos.map(g=>g.data[3]));
+  const bgG=grupos.map(g=>g.data[2]===maxG?'#e34948':g.data[2]===minG?'#f5c0c0':'#e3494860');
+  const bgI=grupos.map(g=>g.data[3]===maxI?'#1baf7a':g.data[3]===minI?'#b0e8d0':'#1baf7a60');
+
+  if(C2) C2.destroy();
+  C2=new Chart(document.getElementById('ch2'),{
+    type:'bar',
+    data:{labels:grupos.map(g=>g.label),datasets:[
+      {label:'Gasto €',data:grupos.map(g=>+g.data[2].toFixed(2)),backgroundColor:bgG,borderRadius:3},
+      {label:'Ingreso €',data:grupos.map(g=>+g.data[3].toFixed(2)),backgroundColor:bgI,borderRadius:3}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y.toFixed(2).replace('.',',')+' €'}},
+        zoom:{
+          zoom:{wheel:{enabled:true},pinch:{enabled:true},mode:'x',drag:{enabled:true,backgroundColor:'rgba(28,33,23,0.08)'}},
+          pan:{enabled:true,mode:'x'},
+          limits:{x:{minRange:1}}
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#898781',font:{size:9},maxRotation:45,autoSkip:false},grid:{display:false}},
+        y:{ticks:{color:'#898781',font:{size:9},callback:v=>v.toFixed(2)+'€'},grid:{color:'rgba(0,0,0,0.05)'}}
+      },
+      onDblClick: ()=>{ C2.resetZoom(); }
+    }
+  });
+
+  // Extremos
+  const gMax=grupos.reduce((a,b)=>a.data[2]>b.data[2]?a:b);
+  const gMin=grupos.reduce((a,b)=>a.data[2]<b.data[2]?a:b);
+  const iMax=grupos.reduce((a,b)=>a.data[3]>b.data[3]?a:b);
+  const iMin=grupos.reduce((a,b)=>a.data[3]<b.data[3]?a:b);
+  document.getElementById('egmd').textContent=gMax.label;
+  document.getElementById('egmv').innerHTML=eur(gMax.data[2]);
+  document.getElementById('egnmd').textContent=gMin.label;
+  document.getElementById('egnmv').innerHTML=eur(gMin.data[2]);
+  document.getElementById('eimd').textContent=iMax.label;
+  document.getElementById('eimv').innerHTML=eur(iMax.data[3]);
+  document.getElementById('einmd').textContent=iMin.label;
+  document.getElementById('einmv').innerHTML=eur(iMin.data[3]);
+}
+
+// ── Controles de periodo ───────────────────────────────────────
+let currentKey = null;
+
+function buildExtra(){
+  const ex=document.getElementById('extra');
+  ex.innerHTML='';
+  const MESES=[...new Set(DIAS.map(d=>d.slice(0,7)))];
+  const SEMANAS=[];
+  for(let i=0;i<DIAS.length;i+=7) SEMANAS.push(DIAS.slice(i,i+7));
+
+  const agrupWrap=document.getElementById('agrup-wrap');
+  agrupWrap.style.display=(modo==='mes'||modo==='periodo')?'flex':'none';
+
+  if(modo==='semana'){
+    const s=document.createElement('select');
+    SEMANAS.forEach((sw,i)=>{
+      const o=document.createElement('option');
+      o.value=i;
+      o.textContent=`${ff(sw[0])} – ${ff(sw[sw.length-1])}`;
+      if(i===SEMANAS.length-2) o.selected=true;
+      s.appendChild(o);
+    });
+    s.onchange=()=>{currentKey=s.value;render(s.value);};
+    ex.appendChild(s);
+    currentKey=String(SEMANAS.length-2);
+    render(currentKey);
+  } else if(modo==='mes'){
+    const s=document.createElement('select');
+    [...MESES].reverse().forEach(m=>{
+      const o=document.createElement('option');o.value=m;o.textContent=fm(m);s.appendChild(o);
+    });
+    s.onchange=()=>{currentKey=s.value;render(s.value);};
+    ex.appendChild(s);
+    currentKey=MESES[MESES.length-1];
+    render(currentKey);
+  } else if(modo==='dia'){
+    const s=document.createElement('select');
+    [...DIAS].reverse().forEach(d=>{
+      const o=document.createElement('option');o.value=d;o.textContent=ff(d)+' ('+d.slice(0,7)+')';s.appendChild(o);
+    });
+    s.onchange=()=>{currentKey=s.value;render(s.value);};
+    ex.appendChild(s);
+    currentKey=DIAS[DIAS.length-1];
+    render(currentKey);
+  } else {
+    const d1=document.createElement('input');d1.type='date';d1.value='2026-06-01';
+    d1.min=DIAS[0].replaceAll('/','-');d1.max=DIAS[DIAS.length-1].replaceAll('/','-');
+    const sp=document.createElement('span');sp.className='sep';sp.textContent='→';
+    const d2=document.createElement('input');d2.type='date';d2.value=DIAS[DIAS.length-1].replaceAll('/','-');
+    d2.min=DIAS[0].replaceAll('/','-');d2.max=DIAS[DIAS.length-1].replaceAll('/','-');
+    const go=()=>{currentKey=d1.value.replaceAll('-','/')+  '|'+d2.value.replaceAll('-','/');render(currentKey);};
+    d1.onchange=go;d2.onchange=go;
+    ex.appendChild(d1);ex.appendChild(sp);ex.appendChild(d2);
+    go();
+  }
+}
+
+function clickP(btn){
+  document.querySelectorAll('.pbar button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  modo=btn.dataset.p;
+  buildExtra();
+}
+
+function clickG(btn){
+  document.querySelectorAll('.agrup button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  agrup=btn.dataset.g;
+  if(currentKey) render(currentKey);
+}
+
+// ── Carga del CSV ──────────────────────────────────────────────
+async function init(){
+  let txt;
+  try{
+    const r=await fetch(CSV_URL+'?t='+Date.now());
+    if(!r.ok) throw new Error();
+    txt=await r.text();
+  } catch(e){
+    document.getElementById('vacio').style.display='block';
+    document.getElementById('estado').textContent='Sin datos todavía';
+    return;
+  }
+
+  const filas=txt.trim().split('\n').slice(1).filter(Boolean);
+  if(!filas.length){document.getElementById('vacio').style.display='block';return;}
+
+  filas.forEach(l=>{
+    const[fecha,hora,consumo,vertido,,coste,ingreso]=l.split(',');
+    if(!RAW[fecha]) RAW[fecha]=[0,0,0,0];
+    RAW[fecha][0]+=parseFloat(consumo)||0;
+    RAW[fecha][1]+=parseFloat(vertido)||0;
+    RAW[fecha][2]+=parseFloat(coste)||0;
+    RAW[fecha][3]+=parseFloat(ingreso)||0;
+  });
+  Object.keys(RAW).forEach(k=>RAW[k]=RAW[k].map(v=>+v.toFixed(2)));
+  DIAS=Object.keys(RAW).sort();
+
+  const ultima=DIAS[DIAS.length-1];
+  const hoyStr=new Date();
+  const hoy=`${hoyStr.getFullYear()}/${String(hoyStr.getMonth()+1).padStart(2,'0')}/${String(hoyStr.getDate()).padStart(2,'0')}`;
+  const esHoy=ultima===hoy;
+  document.getElementById('estado').innerHTML=esHoy
+    ?`Actualizado · último dato ${ultima.replaceAll('/','-')}`
+    :`Último dato: <span class="retraso">${ultima.replaceAll('/','-')}</span> (Datadis va 1-2 días por detrás)`;
+
+  document.getElementById('app').style.display='block';
+  buildExtra();
+}
+
+// Resetear zoom con doble clic en el canvas
+document.addEventListener('dblclick',e=>{if(e.target.id==='ch2'&&C2) C2.resetZoom();});
+init();
+</script>
 </body>
 </html>
