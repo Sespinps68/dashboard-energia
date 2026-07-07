@@ -1,13 +1,10 @@
 """
 ACTUALIZAR DATOS - Dashboard Energía
 ----------------------------------------
-Este script se ejecuta automáticamente cada día (vía GitHub Actions).
-Hace tres cosas:
-1. Descarga el consumo/vertido más reciente de Datadis
-2. Descarga los precios PVPC de esos mismos días desde ESIOS (REE)
-3. Junta todo y lo guarda en data/historico.csv (sin duplicar lo que ya había)
-
-No necesitas ejecutar esto a mano normalmente: GitHub Actions lo hace solo.
+Se ejecuta automáticamente cada día vía GitHub Actions a las 6:00h España.
+- Descarga consumo + vertido de Datadis (mes actual + anterior)
+- Calcula coste con tarifa discriminada (punta/llano/valle)
+- Añade solo registros nuevos al historico.csv (sin duplicar)
 """
 
 import os
@@ -15,110 +12,106 @@ import csv
 import requests
 from datetime import datetime, timedelta
 
-# Credenciales (vienen de los "Secrets" de GitHub, nunca están escritas aquí)
 NIF = os.environ["DATADIS_NIF"]
 PASSWORD = os.environ["DATADIS_PASSWORD"]
-CUPS_OBJETIVO = os.environ["DATADIS_CUPS"]  # El suministro de Torre Pacheco (con la instalación solar)
+CUPS_OBJETIVO = os.environ["DATADIS_CUPS"]
 
-# Tarifa de precio FIJO (no PVPC). Si en el futuro cambias a una tarifa con
-# precio variable por hora, aquí es donde habría que ajustar el cálculo.
-PRECIO_COMPRA_EUR_KWH = 0.115  # lo que pagas por cada kWh consumido de la red
-PRECIO_VENTA_EUR_KWH = 0.06   # lo que te pagan por cada kWh vertido a la red
+# Tarifas discriminadas 2.0TD
+PRECIO = {
+    "punta": 0.195,
+    "llano": 0.116,
+    "valle": 0.079
+}
+PRECIO_VENTA = 0.06
 
-BASE_URL_DATADIS = "https://datadis.es"
+# Horas punta y llano en días laborables (lunes-viernes)
+# Punta: 9-14h y 19-22h
+# Llano: 8-9h, 14-19h, 22-23h
+# Valle: resto (23-8h) y todo sábado/domingo
+def get_precio(fecha_str, hora_str):
+    try:
+        dt = datetime.strptime(f"{fecha_str} {hora_str}", "%Y/%m/%d %H:%M")
+        if dt.weekday() >= 5:  # sábado o domingo → siempre valle
+            return PRECIO["valle"]
+        h = dt.hour
+        if h in range(9, 14) or h in range(19, 22):
+            return PRECIO["punta"]
+        elif h in [8, 14, 15, 16, 17, 18, 22]:
+            return PRECIO["llano"]
+        else:
+            return PRECIO["valle"]
+    except:
+        return PRECIO["llano"]  # fallback
+
+BASE_URL = "https://datadis.es"
 RUTA_CSV = "data/historico.csv"
 
 
-# ----------------------------
-# DATADIS
-# ----------------------------
-
 def obtener_token():
-    url = f"{BASE_URL_DATADIS}/nikola-auth/tokens/login"
-    response = requests.post(
-        url,
+    r = requests.post(
+        f"{BASE_URL}/nikola-auth/tokens/login",
         data={"username": NIF, "password": PASSWORD},
         headers={"Content-Type": "application/x-www-form-urlencoded"}
     )
-    response.raise_for_status()
-    return response.text
+    r.raise_for_status()
+    return r.text
 
 
-def obtener_suministro_objetivo(token):
-    """Busca, entre todos tus suministros, el que coincide con el CUPS que nos interesa."""
-    url = f"{BASE_URL_DATADIS}/api-private/api/get-supplies"
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    suministros = response.json()
-
-    for s in suministros:
+def obtener_suministro(token):
+    r = requests.get(
+        f"{BASE_URL}/api-private/api/get-supplies",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    r.raise_for_status()
+    for s in r.json():
         if s["cups"] == CUPS_OBJETIVO:
             return s
-    raise Exception(f"No se encontró el CUPS {CUPS_OBJETIVO} entre tus suministros")
+    raise Exception(f"CUPS {CUPS_OBJETIVO} no encontrado")
 
 
 def obtener_consumo(token, suministro, fecha_inicio, fecha_fin):
-    url = f"{BASE_URL_DATADIS}/api-private/api/get-consumption-data"
-    headers = {"Authorization": f"Bearer {token}"}
-    params = {
-        "cups": suministro["cups"],
-        "distributorCode": suministro["distributorCode"],
-        "startDate": fecha_inicio,
-        "endDate": fecha_fin,
-        "measurementType": "0",
-        "pointType": suministro["pointType"]
-    }
-    response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code == 429:
-        print(f"⚠️ Límite de Datadis alcanzado para el rango {fecha_inicio}-{fecha_fin}: "
-              f"'{response.text.strip()}'. Datadis solo permite una consulta idéntica cada 24h. "
-              f"Se reintentará en la próxima ejecución diaria.")
+    r = requests.get(
+        f"{BASE_URL}/api-private/api/get-consumption-data",
+        headers={"Authorization": f"Bearer {token}"},
+        params={
+            "cups": suministro["cups"],
+            "distributorCode": suministro["distributorCode"],
+            "startDate": fecha_inicio,
+            "endDate": fecha_fin,
+            "measurementType": "0",
+            "pointType": suministro["pointType"]
+        }
+    )
+    if r.status_code == 429:
+        print(f"⚠️ Límite Datadis para {fecha_inicio}-{fecha_fin}: {r.text.strip()}")
         return []
+    r.raise_for_status()
+    return r.json()
 
-    response.raise_for_status()
-    return response.json()
 
-
-# ----------------------------
-# CSV - Guardar histórico sin duplicar
-# ----------------------------
-
-def cargar_fechas_existentes():
-    """Devuelve el conjunto de (fecha, hora) que ya tenemos guardadas, para no duplicar."""
+def cargar_existentes():
     existentes = set()
     if os.path.exists(RUTA_CSV):
         with open(RUTA_CSV, "r", newline="", encoding="utf-8") as f:
-            lector = csv.DictReader(f)
-            for fila in lector:
+            for fila in csv.DictReader(f):
                 existentes.add((fila["fecha"], fila["hora"]))
     return existentes
 
 
-def guardar_registros(registros):
-    """Añade filas nuevas al CSV, creando el archivo con cabecera si no existe."""
-    existe_archivo = os.path.exists(RUTA_CSV)
+def guardar(registros):
+    existe = os.path.exists(RUTA_CSV)
     with open(RUTA_CSV, "a", newline="", encoding="utf-8") as f:
         campos = ["fecha", "hora", "consumo_kwh", "vertido_kwh", "precio_eur_kwh", "coste_eur", "ingreso_eur"]
-        escritor = csv.DictWriter(f, fieldnames=campos)
-        if not existe_archivo:
-            escritor.writeheader()
+        w = csv.DictWriter(f, fieldnames=campos)
+        if not existe:
+            w.writeheader()
         for r in registros:
-            escritor.writerow(r)
+            w.writerow(r)
 
-
-# ----------------------------
-# PROGRAMA PRINCIPAL
-# ----------------------------
 
 if __name__ == "__main__":
     print("Iniciando actualización de datos...")
 
-    # Pedimos solo el mes en curso y el anterior (suficiente para rellenar el día de hoy
-    # y cualquier dato que Datadis publicase tarde del mes pasado). Pedir rangos más
-    # amplios no hace falta día a día, y además puede chocar con el límite de Datadis
-    # de "una consulta idéntica cada 24h" por cada combinación de fechas.
     hoy = datetime.now()
     mes_anterior = (hoy.replace(day=1) - timedelta(days=1))
     fecha_inicio = mes_anterior.strftime("%Y/%m")
@@ -126,39 +119,42 @@ if __name__ == "__main__":
 
     print("Conectando a Datadis...")
     token = obtener_token()
-    suministro = obtener_suministro_objetivo(token)
-    print(f"Suministro encontrado: {suministro['cups']} (distributorCode={suministro['distributorCode']})")
+    suministro = obtener_suministro(token)
+    print(f"Suministro: *** (distributorCode={suministro['distributorCode']})")
 
-    print(f"Descargando consumo de {fecha_inicio} a {fecha_fin}...")
-    consumo_datos = obtener_consumo(token, suministro, fecha_inicio, fecha_fin)
-    print(f"Registros de consumo recibidos: {len(consumo_datos)}")
+    print(f"Descargando {fecha_inicio} → {fecha_fin}...")
+    datos = obtener_consumo(token, suministro, fecha_inicio, fecha_fin)
+    print(f"Registros recibidos: {len(datos)}")
 
-    existentes = cargar_fechas_existentes()
-    nuevos_registros = []
+    existentes = cargar_existentes()
+    nuevos = []
 
-    for registro in consumo_datos:
-        clave = (registro["date"], registro["time"])
+    for r in datos:
+        clave = (r["date"], r["time"])
         if clave in existentes:
-            continue  # ya lo teníamos guardado
+            continue
 
-        consumo_kwh = registro.get("consumptionKWh") or 0
-        vertido_kwh = registro.get("surplusEnergyKWh") or 0
+        consumo = r.get("consumptionKWh") or 0
+        vertido = r.get("surplusEnergyKWh") or 0
+        precio = get_precio(r["date"], r["time"])
+        coste = round(consumo * precio, 4)
+        ingreso = round(vertido * PRECIO_VENTA, 4)
 
-        coste_eur = round(consumo_kwh * PRECIO_COMPRA_EUR_KWH, 4)
-        ingreso_eur = round(vertido_kwh * PRECIO_VENTA_EUR_KWH, 4)
-
-        nuevos_registros.append({
-            "fecha": registro["date"],
-            "hora": registro["time"],
-            "consumo_kwh": consumo_kwh,
-            "vertido_kwh": vertido_kwh,
-            "precio_eur_kwh": "",  # ya no aplica con tarifa fija; se deja vacío por compatibilidad
-            "coste_eur": coste_eur,
-            "ingreso_eur": ingreso_eur
+        nuevos.append({
+            "fecha": r["date"],
+            "hora": r["time"],
+            "consumo_kwh": consumo,
+            "vertido_kwh": vertido,
+            "precio_eur_kwh": precio,
+            "coste_eur": coste,
+            "ingreso_eur": ingreso
         })
 
-    if nuevos_registros:
-        guardar_registros(nuevos_registros)
-        print(f"✅ Guardados {len(nuevos_registros)} registros nuevos en {RUTA_CSV}")
+    if nuevos:
+        guardar(nuevos)
+        print(f"✅ {len(nuevos)} registros nuevos guardados")
+        # Mostrar resumen de vertido
+        con_vertido = [r for r in nuevos if float(r["vertido_kwh"]) > 0]
+        print(f"   De los cuales {len(con_vertido)} tienen vertido > 0")
     else:
-        print("No hay registros nuevos que guardar (todo estaba ya actualizado).")
+        print("Sin registros nuevos (todo actualizado)")
