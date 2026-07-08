@@ -1,9 +1,11 @@
 {
-  "ultima_conexion_fecha": "",
-  "ultima_conexion_hora": "",
-  "conexion_ok": false,
+  "ultima_conexion_fecha": "2026/07/08",
+  "ultima_conexion_hora": "14:22",
+  "conexion_ok": true,
   "registros_nuevos": 0,
   "registros_con_vertido": 0,
-  "ultimo_dato_fecha": "",
-  "ultimo_dato_hora": ""
+  "ultimo_dato_fecha": "2026/07/07",
+  "ultimo_dato_hora": "24:00",
+  "ultimo_dato_vertido_fecha": "2026/06/30",
+  "ultimo_dato_vertido_hora": "20:00"
 }
