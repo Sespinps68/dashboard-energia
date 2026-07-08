@@ -2,16 +2,11 @@ name: Actualizar datos energía
 
 on:
   schedule:
-    # Se ejecuta todos los días a las 6:00 de la mañana hora España.
-    # GitHub Actions usa UTC. España está en UTC+2 en horario de verano (~marzo-octubre)
-    # y UTC+1 en horario de invierno. Con "0 4 * * *" (4:00 UTC):
-    #   - Verano: 4:00 UTC = 6:00 en España ✅
-    #   - Invierno: 4:00 UTC = 5:00 en España (se adelanta 1h, no se atrasa)
     - cron: "0 4 * * *"
-  workflow_dispatch: {}  # Esto permite también ejecutarlo a mano desde GitHub si quieres probarlo
+  workflow_dispatch: {}
 
 permissions:
-  contents: write  # Necesario para que el script pueda guardar cambios en el repositorio
+  contents: write
 
 jobs:
   actualizar:
@@ -39,6 +34,6 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add data/historico.csv
+          git add data/historico.csv data/status.json
           git diff --staged --quiet || git commit -m "Actualización automática de datos"
           git push
