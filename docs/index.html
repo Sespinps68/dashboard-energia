@@ -2,405 +2,405 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mi Energía - Torre Pacheco</title>
-  <link rel="icon" type="image/svg+xml" href="solar-icon.svg">
-<link rel="apple-touch-icon" href="solar-icon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Mi Energía</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2/dist/chartjs-plugin-zoom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2/hammer.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;color:#1c2117;background:#f5f6f4;padding-bottom:30px}
-.hdr{background:#fff;border-bottom:1px solid #e5e8e2;padding:16px 20px 14px;margin-bottom:14px}
-.hdr .ey{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#767f70;margin-bottom:3px;font-family:ui-monospace,monospace}
-.hdr h1{font-size:22px;font-weight:600;margin-bottom:6px}
-.hdr .st{font-size:11px;color:#767f70;font-family:ui-monospace,monospace}
-.hdr .rt{color:#e08a2c}
-.toggle-wrap{display:flex;align-items:center;gap:8px;margin-top:10px}
-.toggle-wrap span{font-size:12px;color:#767f70;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em}
-.toggle{display:flex;border:1px solid #c8ccc4;border-radius:8px;overflow:hidden;background:#f5f6f4}
-.toggle button{font-size:12px;padding:5px 14px;border:none;background:transparent;color:#5a5f55;cursor:pointer;transition:all .15s}
-.toggle button.on{background:#1c2117;color:#fff}
-.W{padding:0 16px}
-.pb{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
-.pb button{font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #c8ccc4;background:#fff;color:#5a5f55;cursor:pointer}
-.pb button.on{background:#1c2117;color:#fff;border-color:#1c2117}
-.pb select,.pb input[type=date]{font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid #c8ccc4;color:#1c2117;background:#fff}
-.pb .sp{color:#aaa;font-size:12px;padding:0 2px}
-.ag{display:none;gap:5px;margin-bottom:10px;align-items:center}
-.ag.on{display:flex}
-.ag .lb{font-size:11px;color:#767f70;text-transform:uppercase;letter-spacing:.06em;font-family:ui-monospace,monospace}
-.ag button{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid #c8ccc4;background:#fff;color:#5a5f55;cursor:pointer}
-.ag button.on{background:#e8ebe4;color:#1c2117;border-color:#a0a89a}
-.kr{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
-.kp{background:#fff;border-radius:12px;padding:12px 14px;border:1px solid #e5e8e2}
-.kp .lb{font-size:10px;color:#767f70;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-family:ui-monospace,monospace}
-.kp .vl{font-size:20px;font-weight:600;color:#1c2117}
-.kp .vl.p{color:#1baf7a}.kp .vl.n{color:#e34948}
-.kp .sb{font-size:10px;color:#aaa;margin-top:2px}
-.cr{display:grid;grid-template-columns:1fr 1.6fr;gap:12px;margin-bottom:12px}
+body{background:#f5f6f4;color:#1c2117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding-bottom:40px}
+header{padding:24px 20px 16px;background:#fff;border-bottom:1px solid #e5e8e2;margin-bottom:16px}
+.eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#767f70;margin-bottom:4px;font-family:ui-monospace,monospace}
+h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
+#estado{font-size:12px;color:#767f70;margin-top:4px;font-family:ui-monospace,monospace}
+#estado .retraso{color:#e08a2c}
+.wrap{padding:0 16px}
+.pbar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.pbar button{font-size:13px;padding:5px 13px;border-radius:8px;border:1px solid #d0d4cc;background:transparent;color:#5a5f55;cursor:pointer;transition:all .15s}
+.pbar button.active{background:#1c2117;color:#fff;border-color:#1c2117}
+.pbar select,.pbar input[type=date]{font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid #d0d4cc;color:#1c2117;background:#fff}
+.pbar .sep{color:#aaa;font-size:12px;padding:0 2px}
+.agrup{display:flex;gap:4px;margin-bottom:14px;align-items:center}
+.agrup span{font-size:11px;color:#767f70;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+.agrup button{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid #d0d4cc;background:transparent;color:#5a5f55;cursor:pointer}
+.agrup button.active{background:#e5e8e2;color:#1c2117;border-color:#b0b8a8}
+.krow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.kpi{background:#fff;border-radius:12px;padding:12px 14px;border:1px solid #e5e8e2}
+.kpi .lbl{font-size:11px;color:#767f70;margin-bottom:4px;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.05em}
+.kpi .val{font-size:20px;font-weight:600;color:#1c2117}
+.kpi .val.pos{color:#1baf7a}.kpi .val.neg{color:#e34948}
+.kpi .sub{font-size:10px;color:#aaa;margin-top:2px}
+.crow{display:grid;grid-template-columns:1fr 1.5fr;gap:12px;margin-bottom:14px}
 .cc{background:#fff;border-radius:12px;padding:14px;border:1px solid #e5e8e2}
-.cc h3{font-size:10px;font-weight:500;color:#767f70;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;font-family:ui-monospace,monospace}
-.lg{display:flex;gap:10px;margin-bottom:7px;flex-wrap:wrap}
-.lg span{display:flex;align-items:center;gap:4px;font-size:11px;color:#5a5f55}
-.ld{width:9px;height:9px;border-radius:2px;display:inline-block}
-.dw{position:relative;height:180px}
-.dw.rg{display:flex;align-items:center;justify-content:center}
+.cc h3{font-size:12px;font-weight:500;color:#767f70;margin-bottom:10px;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em}
+.leg{display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.leg span{display:flex;align-items:center;gap:4px;font-size:11px;color:#5a5f55}
+.ld{width:9px;height:9px;border-radius:2px;display:inline-block;flex-shrink:0}
+.dw{position:relative;height:190px}
+.dw.donut{display:flex;align-items:center;justify-content:center}
 .dc{position:absolute;text-align:center;pointer-events:none}
-.dc .dv{font-size:15px;font-weight:600;color:#1c2117}
-.dc .dl{font-size:10px;color:#767f70}
-.hi{font-size:10px;color:#aaa;text-align:right;margin-top:3px;font-family:ui-monospace,monospace}
-.er_{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.dc .dcv{font-size:16px;font-weight:600;color:#1c2117}
+.dc .dcl{font-size:10px;color:#767f70}
+.zoom-hint{font-size:10px;color:#aaa;text-align:right;margin-top:4px;font-family:ui-monospace,monospace}
+.erow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .ec{background:#fff;border-radius:12px;padding:14px;border:1px solid #e5e8e2}
-.ec h3{font-size:10px;color:#767f70;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;font-family:ui-monospace,monospace}
+.ec h3{font-size:11px;color:#767f70;margin-bottom:10px;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em}
 .er{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f0f2ee}
 .er:last-child{border-bottom:none}
 .er .el{font-size:12px;color:#5a5f55}.er .ed{font-size:10px;color:#aaa}
-.er .ev{font-size:13px;font-weight:600}
-.ft{text-align:center;font-size:10px;color:#bbb;margin-top:10px;font-family:ui-monospace,monospace}
-@media(max-width:540px){.kr{grid-template-columns:repeat(2,1fr)}.cr,.er_{grid-template-columns:1fr}}
+.er .ev{font-size:14px;font-weight:600}
+#vacio{text-align:center;padding:60px 20px;color:#767f70}
+#vacio strong{display:block;color:#1c2117;font-size:16px;margin-bottom:8px}
+.footer{text-align:center;font-size:10px;color:#bbb;margin-top:20px;font-family:ui-monospace,monospace}
+@media(max-width:540px){.krow{grid-template-columns:repeat(2,1fr)}.crow,.erow{grid-template-columns:1fr}}
 
-.cmp{background:#fff;border-radius:12px;padding:14px;border:1px solid #e5e8e2;margin-bottom:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-
-.cmp .cmp-blk{flex:1;min-width:120px}
-.cmp .cmp-lbl{font-size:10px;color:#767f70;text-transform:uppercase;letter-spacing:.05em;font-family:ui-monospace,monospace;margin-bottom:2px}
-.cmp .cmp-val{font-size:17px;font-weight:600;color:#1c2117}
-.cmp .cmp-sub{font-size:10px;color:#aaa;margin-top:1px}
-.cmp .cmp-sep{width:1px;height:40px;background:#e5e8e2;flex-shrink:0}
-.cmp .cmp-ahorro{font-size:15px;font-weight:700}
-.cmp .cmp-ahorro.pos{color:#1baf7a}
-.cmp .cmp-ahorro.neg{color:#e34948}
-.cmp-wrap{margin-bottom:12px}
-.cmp-wrap h4{font-size:10px;color:#767f70;text-transform:uppercase;letter-spacing:.06em;font-family:ui-monospace,monospace;margin-bottom:6px}
-.no-cmp{background:#fff;border:1px solid #e5e8e2;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#aaa;text-align:center;font-family:ui-monospace,monospace}
+.status-bar{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
+.status-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#767f70;font-family:ui-monospace,monospace}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-dot.ok{background:#1baf7a;box-shadow:0 0 6px #1baf7a88}
+.status-dot.err{background:#e34948;box-shadow:0 0 6px #e3494888}
+.status-dot.unk{background:#c0c4bb}
+.status-val{color:#1c2117;font-weight:500}
 </style>
 </head>
 <body>
-<div class="hdr">
-  <p class="ey">Torre Pacheco · ASW6000H-S2</p>
+<header>
+  <p class="eyebrow">Torre Pacheco · ASW6000H-S2</p>
   <h1>Mi Energía</h1>
-  <div class="toggle-wrap">
-    <span>Ver en</span>
-    <div class="toggle">
-      <button class="on" id="btn-eur" onclick="setVista('eur')">€ Euros</button>
-      <button id="btn-kwh" onclick="setVista('kwh')">⚡ kWh</button>
+  <p id="estado">Cargando datos…</p>
+</header>
+
+<div id="vacio" style="display:none"><strong>Sin datos todavía</strong>La actualización automática llega cada día a las 6:00.</div>
+
+<div id="app" class="wrap" style="display:none">
+  <div class="pbar" id="pbar">
+    <button class="active" data-p="semana" onclick="clickP(this)">Semana</button>
+    <button data-p="mes" onclick="clickP(this)">Mes</button>
+    <button data-p="dia" onclick="clickP(this)">Día</button>
+    <button data-p="periodo" onclick="clickP(this)">Periodo libre</button>
+    <span id="extra"></span>
+  </div>
+  <div class="agrup" id="agrup-wrap" style="display:none">
+    <span>Ver por</span>
+    <button class="active" data-g="dia" onclick="clickG(this)">Días</button>
+    <button data-g="semana" onclick="clickG(this)">Semanas</button>
+    <button data-g="mes" onclick="clickG(this)">Meses</button>
+  </div>
+  <div class="krow">
+    <div class="kpi"><div class="lbl">Gasto</div><div class="val neg" id="kg">—</div><div class="sub" id="kgs"></div></div>
+    <div class="kpi"><div class="lbl">Ingreso</div><div class="val pos" id="ki">—</div><div class="sub" id="kis"></div></div>
+    <div class="kpi"><div class="lbl">Balance</div><div class="val" id="kb">—</div><div class="sub">ingreso − gasto</div></div>
+    <div class="kpi"><div class="lbl">Consumo red</div><div class="val" id="kc">—</div></div>
+    <div class="kpi"><div class="lbl">Vertido red</div><div class="val" id="kv">—</div></div>
+  </div>
+  <div class="crow">
+    <div class="cc">
+      <h3>Reparto económico</h3>
+      <div class="leg"><span><span class="ld" style="background:#e34948"></span><span id="lg">Gasto</span></span><span><span class="ld" style="background:#1baf7a"></span><span id="li">Ingreso</span></span></div>
+      <div class="dw donut">
+        <canvas id="ch1" width="180" height="180" role="img" aria-label="Donut reparto económico">Reparto gasto/ingreso</canvas>
+        <div class="dc"><div class="dcv" id="dcb">—</div><div class="dcl">balance</div></div>
+      </div>
+    </div>
+    <div class="cc">
+      <h3>Gasto e ingreso por periodo</h3>
+      <div class="leg"><span><span class="ld" style="background:#e34948"></span>Gasto €</span><span><span class="ld" style="background:#1baf7a"></span>Ingreso €</span><span style="color:#bbb;font-size:10px">■ máx · ░ mín</span></div>
+      <div class="dw"><canvas id="ch2" role="img" aria-label="Barras gasto e ingreso">Barras diarias</canvas></div>
+      <p class="zoom-hint">↔ arrastra para hacer zoom · doble clic para resetear</p>
     </div>
   </div>
-  <p class="st" id="st" style="margin-top:8px">Cargando…</p>
-</div>
-<div class="W">
-<div class="pb" id="pb">
-  <button class="on" data-p="semana" onclick="cP(this)">Semana</button>
-  <button data-p="mes" onclick="cP(this)">Mes</button>
-  <button data-p="dia" onclick="cP(this)">Día</button>
-  <button data-p="periodo" onclick="cP(this)">Periodo libre</button>
-  <span id="ex"></span>
-</div>
-<div class="ag" id="ag">
-  <span class="lb">Ver por</span>
-  <button class="on" data-g="dia" onclick="cG(this)">Días</button>
-  <button data-g="semana" onclick="cG(this)">Semanas</button>
-  <button data-g="mes" onclick="cG(this)">Meses</button>
-</div>
-
-<!-- KPIs euros -->
-
-<div class="cmp-wrap">
-  <h4>Comparativa mismo periodo — año anterior vs este año</h4>
-  <div id="cmp-card" class="no-cmp">Selecciona un periodo para ver la comparativa</div>
-</div>
-<div class="kr" id="kpi-eur">
-  <div class="kp"><div class="lb">Gasto</div><div class="vl n" id="kg">—</div><div class="sb" id="kgs"></div></div>
-  <div class="kp"><div class="lb">Ingreso</div><div class="vl p" id="ki">—</div><div class="sb" id="kis"></div></div>
-  <div class="kp"><div class="lb">Balance</div><div class="vl" id="kb">—</div><div class="sb">ingreso − gasto</div></div>
-  <div class="kp"><div class="lb">Consumo red</div><div class="vl" id="kc-e">—</div></div>
-  <div class="kp"><div class="lb">Vertido red</div><div class="vl" id="kv-e">—</div></div>
-</div>
-
-<!-- KPIs kWh -->
-<div class="kr" id="kpi-kwh" style="display:none">
-  <div class="kp"><div class="lb">Consumo red</div><div class="vl n" id="kc-k">—</div><div class="sb" id="kck-s"></div></div>
-  <div class="kp"><div class="lb">Vertido red</div><div class="vl p" id="kv-k">—</div><div class="sb" id="kvk-s"></div></div>
-  <div class="kp"><div class="lb">Balance kWh</div><div class="vl" id="kb-k">—</div><div class="sb">vertido − consumo</div></div>
-  <div class="kp"><div class="lb">Gasto estimado</div><div class="vl n" id="kg-k">—</div></div>
-  <div class="kp"><div class="lb">Ingreso estimado</div><div class="vl p" id="ki-k">—</div></div>
-</div>
-
-<div class="cr">
-  <div class="cc">
-    <h3 id="donut-title">Reparto económico</h3>
-    <div class="lg" id="donut-leg">
-      <span><span class="ld" style="background:#e34948"></span><span id="lg">Gasto</span></span>
-      <span><span class="ld" style="background:#1baf7a"></span><span id="li">Ingreso</span></span>
+  <div class="erow">
+    <div class="ec">
+      <h3>Extremos de gasto</h3>
+      <div class="er"><div><div class="el">Período más caro</div><div class="ed" id="egmd">—</div></div><div class="ev neg" id="egmv">—</div></div>
+      <div class="er"><div><div class="el">Período más barato</div><div class="ed" id="egnmd">—</div></div><div class="ev pos" id="egnmv">—</div></div>
     </div>
-    <div class="dw rg">
-      <canvas id="c1" width="170" height="170"></canvas>
-      <div class="dc"><div class="dv" id="dcb">—</div><div class="dl" id="dcl">balance</div></div>
+    <div class="ec">
+      <h3>Extremos de ingreso</h3>
+      <div class="er"><div><div class="el">Mejor período</div><div class="ed" id="eimd">—</div></div><div class="ev pos" id="eimv">—</div></div>
+      <div class="er"><div><div class="el">Peor período</div><div class="ed" id="einmd">—</div></div><div class="ev neg" id="einmv">—</div></div>
     </div>
   </div>
-  <div class="cc">
-    <h3 id="bars-title">Gasto e ingreso por periodo</h3>
-    <div class="lg" id="bars-leg">
-      <span><span class="ld" style="background:#e34948"></span><span id="bl1">Gasto €</span></span>
-      <span><span class="ld" style="background:#1baf7a"></span><span id="bl2">Ingreso €</span></span>
-      <span style="font-size:10px;color:#aaa">■ máx · ░ mín</span>
-    </div>
-    <div class="dw"><canvas id="c2"></canvas></div>
-    <p class="hi">↔ arrastra para zoom · doble clic para resetear</p>
-  </div>
-</div>
-<div class="er_">
-  <div class="ec"><h3 id="ext-g-title">Extremos de gasto</h3>
-    <div class="er"><div><div class="el" id="ext-g1-lbl">Período más caro</div><div class="ed" id="egmd">—</div></div><div class="ev n" id="egmv">—</div></div>
-    <div class="er"><div><div class="el" id="ext-g2-lbl">Período más barato</div><div class="ed" id="egnmd">—</div></div><div class="ev p" id="egnmv">—</div></div>
-  </div>
-  <div class="ec"><h3 id="ext-i-title">Extremos de ingreso</h3>
-    <div class="er"><div><div class="el" id="ext-i1-lbl">Mejor período</div><div class="ed" id="eimd">—</div></div><div class="ev p" id="eimv">—</div></div>
-    <div class="er"><div><div class="el" id="ext-i2-lbl">Peor período</div><div class="ed" id="einmd">—</div></div><div class="ev n" id="einmv">—</div></div>
-  </div>
-</div>
-<p class="ft">Datos vía i-DE · 0,115 €/kWh consumo · 0,06 €/kWh vertido</p>
+  <p class="footer">Datos vía Datadis · i-DE · Actualización automática diaria</p>
 </div>
 
 <script>
-// [consumo_kwh, vertido_kwh, coste_eur, ingreso_eur]
-const R={"2025/01/01": [24.33, 0.0, 2.8, 0.0], "2025/01/02": [17.6, 0.0, 2.02, 0.0], "2025/01/03": [19.9, 0.0, 2.29, 0.0], "2025/01/04": [18.45, 0.0, 2.12, 0.0], "2025/01/05": [27.82, 0.0, 3.2, 0.0], "2025/01/06": [19.47, 0.0, 2.24, 0.0], "2025/01/07": [18.68, 0.0, 2.15, 0.0], "2025/01/08": [16.23, 0.0, 1.87, 0.0], "2025/01/09": [25.16, 0.0, 2.89, 0.0], "2025/01/10": [13.07, 0.0, 1.5, 0.0], "2025/01/11": [19.39, 0.0, 2.23, 0.0], "2025/01/12": [19.84, 0.0, 2.28, 0.0], "2025/01/13": [18.93, 0.0, 2.18, 0.0], "2025/01/14": [22.82, 0.0, 2.62, 0.0], "2025/01/15": [19.41, 0.0, 2.23, 0.0], "2025/01/16": [24.38, 0.0, 2.8, 0.0], "2025/01/17": [18.68, 0.0, 2.15, 0.0], "2025/01/18": [18.9, 0.0, 2.17, 0.0], "2025/01/19": [16.76, 0.0, 1.93, 0.0], "2025/01/20": [22.1, 0.0, 2.54, 0.0], "2025/01/21": [23.72, 0.0, 2.73, 0.0], "2025/01/22": [13.59, 0.0, 1.56, 0.0], "2025/01/23": [15.0, 0.0, 1.73, 0.0], "2025/01/24": [13.59, 0.0, 1.56, 0.0], "2025/01/25": [14.38, 0.0, 1.65, 0.0], "2025/01/26": [16.52, 0.0, 1.9, 0.0], "2025/01/27": [19.15, 0.0, 2.2, 0.0], "2025/01/28": [9.39, 0.0, 1.08, 0.0], "2025/01/29": [17.12, 0.0, 1.97, 0.0], "2025/01/30": [13.95, 0.0, 1.6, 0.0], "2025/01/31": [11.79, 0.0, 1.36, 0.0], "2025/02/01": [15.43, 0.0, 1.77, 0.0], "2025/02/02": [24.55, 0.0, 2.82, 0.0], "2025/02/03": [21.57, 0.0, 2.48, 0.0], "2025/02/04": [11.54, 0.0, 1.33, 0.0], "2025/02/05": [14.08, 0.0, 1.62, 0.0], "2025/02/06": [21.86, 0.0, 2.51, 0.0], "2025/02/07": [16.72, 0.0, 1.92, 0.0], "2025/02/08": [18.6, 0.0, 2.14, 0.0], "2025/02/09": [18.62, 0.0, 2.14, 0.0], "2025/02/10": [11.22, 0.0, 1.29, 0.0], "2025/02/11": [12.14, 0.0, 1.4, 0.0], "2025/02/12": [9.82, 0.0, 1.13, 0.0], "2025/02/13": [14.31, 0.0, 1.65, 0.0], "2025/02/14": [15.8, 0.0, 1.82, 0.0], "2025/02/15": [11.54, 0.0, 1.33, 0.0], "2025/02/16": [15.82, 0.0, 1.82, 0.0], "2025/02/17": [14.79, 0.0, 1.7, 0.0], "2025/02/18": [14.45, 0.0, 1.66, 0.0], "2025/02/19": [15.68, 0.0, 1.8, 0.0], "2025/02/20": [14.74, 0.0, 1.7, 0.0], "2025/02/21": [13.79, 0.0, 1.59, 0.0], "2025/02/22": [15.52, 0.0, 1.78, 0.0], "2025/02/23": [12.28, 0.0, 1.41, 0.0], "2025/02/24": [13.58, 0.0, 1.56, 0.0], "2025/02/25": [12.76, 0.0, 1.47, 0.0], "2025/02/26": [15.96, 0.0, 1.84, 0.0], "2025/02/27": [10.03, 0.0, 1.15, 0.0], "2025/02/28": [16.89, 0.0, 1.94, 0.0], "2025/03/01": [21.93, 0.0, 2.52, 0.0], "2025/03/02": [17.36, 0.0, 2.0, 0.0], "2025/03/03": [11.64, 0.0, 1.34, 0.0], "2025/03/04": [18.93, 0.0, 2.18, 0.0], "2025/03/05": [20.91, 0.0, 2.4, 0.0], "2025/03/06": [15.24, 0.0, 1.75, 0.0], "2025/03/07": [11.55, 0.0, 1.33, 0.0], "2025/03/08": [17.23, 0.0, 1.98, 0.0], "2025/03/09": [13.29, 0.0, 1.53, 0.0], "2025/03/10": [11.39, 0.0, 1.31, 0.0], "2025/03/11": [20.54, 0.0, 2.36, 0.0], "2025/03/12": [11.81, 0.0, 1.36, 0.0], "2025/03/13": [10.26, 0.0, 1.18, 0.0], "2025/03/14": [16.25, 0.0, 1.87, 0.0], "2025/03/15": [9.8, 0.0, 1.13, 0.0], "2025/03/16": [13.09, 0.0, 1.51, 0.0], "2025/03/17": [15.5, 0.0, 1.78, 0.0], "2025/03/18": [13.23, 0.0, 1.52, 0.0], "2025/03/19": [18.11, 0.0, 2.08, 0.0], "2025/03/20": [9.49, 0.0, 1.09, 0.0], "2025/03/21": [6.82, 0.0, 0.78, 0.0], "2025/03/22": [9.29, 0.0, 1.07, 0.0], "2025/03/23": [5.92, 0.0, 0.68, 0.0], "2025/03/24": [15.01, 0.0, 1.73, 0.0], "2025/03/25": [11.36, 0.0, 1.31, 0.0], "2025/03/26": [14.51, 0.0, 1.67, 0.0], "2025/03/27": [13.69, 0.0, 1.57, 0.0], "2025/03/28": [9.64, 0.0, 1.11, 0.0], "2025/03/29": [12.39, 0.0, 1.43, 0.0], "2025/03/30": [10.22, 0.0, 1.18, 0.0], "2025/03/31": [14.17, 0.0, 1.63, 0.0], "2025/04/01": [12.35, 0.0, 1.42, 0.0], "2025/04/02": [10.19, 0.0, 1.17, 0.0], "2025/04/03": [12.87, 0.0, 1.48, 0.0], "2025/04/04": [10.03, 0.0, 1.15, 0.0], "2025/04/05": [10.14, 0.0, 1.17, 0.0], "2025/04/06": [13.2, 0.0, 1.52, 0.0], "2025/04/07": [10.6, 0.0, 1.22, 0.0], "2025/04/08": [14.86, 0.0, 1.71, 0.0], "2025/04/09": [10.44, 0.0, 1.2, 0.0], "2025/04/10": [7.72, 0.0, 0.89, 0.0], "2025/04/11": [12.96, 0.0, 1.49, 0.0], "2025/04/12": [12.03, 0.0, 1.38, 0.0], "2025/04/13": [10.48, 0.0, 1.21, 0.0], "2025/04/14": [12.16, 0.0, 1.4, 0.0], "2025/04/15": [14.35, 0.0, 1.65, 0.0], "2025/04/16": [12.59, 0.0, 1.45, 0.0], "2025/04/17": [11.79, 0.0, 1.36, 0.0], "2025/04/18": [8.16, 0.0, 0.94, 0.0], "2025/04/19": [10.57, 0.0, 1.22, 0.0], "2025/04/20": [11.08, 0.0, 1.27, 0.0], "2025/04/21": [10.23, 0.0, 1.18, 0.0], "2025/04/22": [14.4, 0.0, 1.66, 0.0], "2025/04/23": [9.71, 0.0, 1.12, 0.0], "2025/04/24": [9.45, 0.0, 1.09, 0.0], "2025/04/25": [10.23, 0.0, 1.18, 0.0], "2025/04/26": [8.82, 0.0, 1.01, 0.0], "2025/04/27": [13.93, 0.0, 1.6, 0.0], "2025/04/28": [6.17, 0.0, 0.71, 0.0], "2025/04/29": [12.79, 0.0, 1.47, 0.0], "2025/04/30": [10.72, 0.0, 1.23, 0.0], "2025/05/01": [9.96, 0.0, 1.15, 0.0], "2025/05/02": [10.93, 0.0, 1.26, 0.0], "2025/05/03": [9.06, 0.0, 1.04, 0.0], "2025/05/04": [10.09, 0.0, 1.16, 0.0], "2025/05/05": [14.51, 0.0, 1.67, 0.0], "2025/05/06": [12.1, 0.0, 1.39, 0.0], "2025/05/07": [10.63, 0.0, 1.22, 0.0], "2025/05/08": [8.91, 0.0, 1.02, 0.0], "2025/05/09": [10.02, 0.0, 1.15, 0.0], "2025/05/10": [13.56, 0.0, 1.56, 0.0], "2025/05/11": [11.1, 0.0, 1.28, 0.0], "2025/05/12": [11.3, 0.0, 1.3, 0.0], "2025/05/13": [12.78, 0.0, 1.47, 0.0], "2025/05/14": [10.63, 0.0, 1.22, 0.0], "2025/05/15": [11.06, 0.0, 1.27, 0.0], "2025/05/16": [7.13, 0.0, 0.82, 0.0], "2025/05/17": [12.02, 0.0, 1.38, 0.0], "2025/05/18": [13.48, 0.0, 1.55, 0.0], "2025/05/19": [11.22, 0.0, 1.29, 0.0], "2025/05/20": [11.76, 0.0, 1.35, 0.0], "2025/05/21": [9.22, 0.0, 1.06, 0.0], "2025/05/22": [10.51, 0.0, 1.21, 0.0], "2025/05/23": [10.52, 0.0, 1.21, 0.0], "2025/05/24": [9.72, 0.0, 1.12, 0.0], "2025/05/25": [8.23, 0.0, 0.95, 0.0], "2025/05/26": [10.49, 0.0, 1.21, 0.0], "2025/05/27": [10.16, 0.0, 1.17, 0.0], "2025/05/28": [10.71, 0.0, 1.23, 0.0], "2025/05/29": [9.19, 0.0, 1.06, 0.0], "2025/05/30": [12.95, 0.0, 1.49, 0.0], "2025/05/31": [9.13, 0.0, 1.05, 0.0], "2025/06/01": [10.98, 0.0, 1.26, 0.0], "2025/06/02": [13.61, 0.0, 1.56, 0.0], "2025/06/03": [9.5, 0.0, 1.09, 0.0], "2025/06/04": [11.72, 0.0, 1.35, 0.0], "2025/06/05": [8.86, 0.0, 1.02, 0.0], "2025/06/06": [12.2, 0.0, 1.4, 0.0], "2025/06/07": [5.5, 0.0, 0.63, 0.0], "2025/06/08": [6.55, 0.0, 0.75, 0.0], "2025/06/09": [13.44, 0.0, 1.55, 0.0], "2025/06/10": [12.53, 0.0, 1.44, 0.0], "2025/06/11": [16.01, 0.0, 1.84, 0.0], "2025/06/12": [13.38, 0.0, 1.54, 0.0], "2025/06/13": [13.46, 0.0, 1.55, 0.0], "2025/06/14": [11.08, 0.0, 1.27, 0.0], "2025/06/15": [13.2, 0.0, 1.52, 0.0], "2025/06/16": [18.84, 0.0, 2.17, 0.0], "2025/06/17": [17.81, 0.0, 2.05, 0.0], "2025/06/18": [28.02, 0.0, 3.22, 0.0], "2025/06/19": [17.24, 0.0, 1.98, 0.0], "2025/06/20": [14.49, 0.0, 1.67, 0.0], "2025/06/21": [22.13, 0.0, 2.55, 0.0], "2025/06/22": [21.35, 0.0, 2.46, 0.0], "2025/06/23": [16.98, 0.0, 1.95, 0.0], "2025/06/24": [22.57, 0.0, 2.6, 0.0], "2025/06/25": [23.9, 0.0, 2.75, 0.0], "2025/06/26": [25.39, 0.0, 2.92, 0.0], "2025/06/27": [21.21, 0.0, 2.44, 0.0], "2025/06/28": [22.15, 0.0, 2.55, 0.0], "2025/06/29": [4.61, 0.0, 0.53, 0.0], "2025/06/30": [14.16, 0.0, 1.63, 0.0], "2025/07/01": [13.68, 0.0, 1.57, 0.0], "2025/07/02": [11.79, 0.0, 1.36, 0.0], "2025/07/03": [16.56, 0.0, 1.9, 0.0], "2025/07/04": [12.1, 0.0, 1.39, 0.0], "2025/07/05": [10.96, 0.0, 1.26, 0.0], "2025/07/06": [3.88, 0.0, 0.45, 0.0], "2025/07/07": [11.97, 0.0, 1.38, 0.0], "2025/07/08": [20.82, 0.0, 2.39, 0.0], "2025/07/09": [16.53, 0.0, 1.9, 0.0], "2025/07/10": [16.29, 0.0, 1.87, 0.0], "2025/07/11": [18.0, 0.0, 2.07, 0.0], "2025/07/12": [20.46, 0.0, 2.35, 0.0], "2025/07/13": [4.21, 0.0, 0.48, 0.0], "2025/07/14": [12.64, 0.0, 1.45, 0.0], "2025/07/15": [11.18, 0.0, 1.29, 0.0], "2025/07/16": [14.23, 0.0, 1.64, 0.0], "2025/07/17": [14.48, 0.0, 1.66, 0.0], "2025/07/18": [14.22, 0.0, 1.64, 0.0], "2025/07/19": [8.32, 0.0, 0.96, 0.0], "2025/07/20": [5.63, 0.0, 0.65, 0.0], "2025/07/21": [21.98, 0.0, 2.53, 0.0], "2025/07/22": [19.67, 0.0, 2.26, 0.0], "2025/07/23": [19.62, 0.0, 2.26, 0.0], "2025/07/24": [16.3, 0.0, 1.87, 0.0], "2025/07/25": [7.21, 0.0, 0.83, 0.0], "2025/07/26": [3.79, 0.0, 0.44, 0.0], "2025/07/27": [3.96, 0.0, 0.46, 0.0], "2025/07/28": [11.24, 0.0, 1.29, 0.0], "2025/07/29": [13.25, 0.0, 1.52, 0.0], "2025/07/30": [4.78, 0.0, 0.55, 0.0], "2025/07/31": [16.86, 0.0, 1.94, 0.0], "2025/08/01": [6.89, 0.0, 0.79, 0.0], "2025/08/02": [3.9, 0.0, 0.45, 0.0], "2025/08/03": [7.95, 0.0, 0.91, 0.0], "2025/08/04": [3.68, 0.0, 0.42, 0.0], "2025/08/05": [3.71, 0.0, 0.43, 0.0], "2025/08/06": [3.72, 0.0, 0.43, 0.0], "2025/08/07": [4.8, 0.0, 0.55, 0.0], "2025/08/08": [4.55, 0.0, 0.52, 0.0], "2025/08/09": [4.48, 0.0, 0.52, 0.0], "2025/08/10": [4.54, 0.0, 0.52, 0.0], "2025/08/11": [4.64, 0.0, 0.53, 0.0], "2025/08/12": [4.57, 0.0, 0.53, 0.0], "2025/08/13": [4.59, 0.0, 0.53, 0.0], "2025/08/14": [4.58, 0.0, 0.53, 0.0], "2025/08/15": [4.55, 0.0, 0.52, 0.0], "2025/08/16": [4.57, 0.0, 0.53, 0.0], "2025/08/17": [4.61, 0.0, 0.53, 0.0], "2025/08/18": [4.61, 0.0, 0.53, 0.0], "2025/08/19": [4.7, 0.0, 0.54, 0.0], "2025/08/20": [4.71, 0.0, 0.54, 0.0], "2025/08/21": [4.69, 0.0, 0.54, 0.0], "2025/08/22": [4.61, 0.0, 0.53, 0.0], "2025/08/23": [4.57, 0.0, 0.53, 0.0], "2025/08/24": [4.6, 0.0, 0.53, 0.0], "2025/08/25": [5.84, 0.0, 0.67, 0.0], "2025/08/26": [13.56, 0.0, 1.56, 0.0], "2025/08/27": [27.4, 0.0, 3.15, 0.0], "2025/08/28": [13.32, 0.0, 1.53, 0.0], "2025/08/29": [11.12, 0.0, 1.28, 0.0], "2025/08/30": [7.59, 0.0, 0.87, 0.0], "2025/08/31": [4.04, 0.0, 0.46, 0.0], "2025/09/01": [8.81, 0.0, 1.01, 0.0], "2025/09/02": [9.97, 0.0, 1.15, 0.0], "2025/09/03": [8.69, 0.0, 1.0, 0.0], "2025/09/04": [4.6, 0.0, 0.53, 0.0], "2025/09/05": [4.22, 0.0, 0.49, 0.0], "2025/09/06": [5.76, 0.0, 0.66, 0.0], "2025/09/07": [15.27, 0.0, 1.76, 0.0], "2025/09/08": [7.19, 0.0, 0.83, 0.0], "2025/09/09": [12.65, 0.0, 1.45, 0.0], "2025/09/10": [6.72, 0.0, 0.77, 0.0], "2025/09/11": [6.94, 0.0, 0.8, 0.0], "2025/09/12": [7.4, 0.0, 0.85, 0.0], "2025/09/13": [8.28, 0.0, 0.95, 0.0], "2025/09/14": [4.25, 0.0, 0.49, 0.0], "2025/09/15": [6.56, 0.0, 0.75, 0.0], "2025/09/16": [9.7, 0.0, 1.11, 0.0], "2025/09/17": [4.56, 0.0, 0.52, 0.0], "2025/09/18": [7.02, 0.0, 0.81, 0.0], "2025/09/19": [4.8, 0.0, 0.55, 0.0], "2025/09/20": [3.62, 0.0, 0.42, 0.0], "2025/09/21": [3.63, 0.0, 0.42, 0.0], "2025/09/22": [5.17, 0.0, 0.59, 0.0], "2025/09/23": [4.8, 0.0, 0.55, 0.0], "2025/09/24": [4.09, 0.0, 0.47, 0.0], "2025/09/25": [3.86, 0.0, 0.44, 0.0], "2025/09/26": [5.71, 0.0, 0.66, 0.0], "2025/09/27": [3.9, 0.0, 0.45, 0.0], "2025/09/28": [6.21, 0.0, 0.71, 0.0], "2025/09/29": [12.11, 0.0, 1.39, 0.0], "2025/09/30": [8.34, 0.0, 0.96, 0.0], "2025/10/01": [11.31, 0.0, 1.3, 0.0], "2025/10/02": [11.49, 0.0, 1.32, 0.0], "2025/10/03": [8.02, 0.0, 0.92, 0.0], "2025/10/04": [7.29, 0.0, 0.84, 0.0], "2025/10/05": [7.17, 0.0, 0.82, 0.0], "2025/10/06": [11.95, 0.0, 1.37, 0.0], "2025/10/07": [9.77, 0.0, 1.12, 0.0], "2025/10/08": [10.21, 0.0, 1.17, 0.0], "2025/10/09": [12.53, 0.0, 1.44, 0.0], "2025/10/10": [14.38, 0.0, 1.65, 0.0], "2025/10/11": [11.74, 0.0, 1.35, 0.0], "2025/10/12": [5.36, 0.0, 0.62, 0.0], "2025/10/13": [9.77, 0.0, 1.12, 0.0], "2025/10/14": [11.69, 0.0, 1.34, 0.0], "2025/10/15": [9.08, 0.0, 1.04, 0.0], "2025/10/16": [7.48, 0.0, 0.86, 0.0], "2025/10/17": [12.3, 0.0, 1.41, 0.0], "2025/10/18": [7.69, 0.0, 0.88, 0.0], "2025/10/19": [6.69, 0.0, 0.77, 0.0], "2025/10/20": [8.91, 0.0, 1.02, 0.0], "2025/10/21": [11.46, 0.0, 1.32, 0.0], "2025/10/22": [9.25, 0.0, 1.06, 0.0], "2025/10/23": [8.89, 0.0, 1.02, 0.0], "2025/10/24": [9.17, 0.0, 1.05, 0.0], "2025/10/25": [8.41, 0.0, 0.97, 0.0], "2025/10/26": [12.37, 0.0, 1.42, 0.0], "2025/10/27": [11.73, 0.0, 1.35, 0.0], "2025/10/28": [11.98, 0.0, 1.38, 0.0], "2025/10/29": [11.03, 0.0, 1.27, 0.0], "2025/10/30": [9.82, 0.0, 1.13, 0.0], "2025/10/31": [7.62, 0.0, 0.88, 0.0], "2025/11/01": [9.34, 0.0, 1.07, 0.0], "2025/11/02": [9.46, 0.0, 1.09, 0.0], "2025/11/03": [10.01, 0.0, 1.15, 0.0], "2025/11/04": [10.68, 0.0, 1.23, 0.0], "2025/11/05": [10.07, 0.0, 1.16, 0.0], "2025/11/06": [11.41, 0.0, 1.31, 0.0], "2025/11/07": [10.14, 0.0, 1.17, 0.0], "2025/11/08": [6.23, 0.0, 0.72, 0.0], "2025/11/09": [8.23, 0.0, 0.95, 0.0], "2025/11/10": [11.69, 0.0, 1.34, 0.0], "2025/11/11": [10.89, 0.0, 1.25, 0.0], "2025/11/12": [10.61, 0.0, 1.22, 0.0], "2025/11/13": [14.24, 0.0, 1.64, 0.0], "2025/11/14": [12.43, 0.0, 1.43, 0.0], "2025/11/15": [12.2, 0.0, 1.4, 0.0], "2025/11/16": [9.68, 0.0, 1.11, 0.0], "2025/11/17": [8.14, 0.0, 0.94, 0.0], "2025/11/18": [11.31, 0.0, 1.3, 0.0], "2025/11/19": [10.5, 0.0, 1.21, 0.0], "2025/11/20": [11.33, 0.0, 1.3, 0.0], "2025/11/21": [20.63, 0.0, 2.37, 0.0], "2025/11/22": [17.12, 0.0, 1.97, 0.0], "2025/11/23": [15.3, 0.0, 1.76, 0.0], "2025/11/24": [11.77, 0.0, 1.35, 0.0], "2025/11/25": [12.04, 0.0, 1.38, 0.0], "2025/11/26": [12.27, 0.0, 1.41, 0.0], "2025/11/27": [17.52, 0.0, 2.01, 0.0], "2025/11/28": [19.0, 0.0, 2.19, 0.0], "2025/11/29": [9.92, 0.0, 1.14, 0.0], "2025/11/30": [24.42, 0.0, 2.81, 0.0], "2025/12/01": [15.63, 0.0, 1.8, 0.0], "2025/12/02": [16.37, 0.0, 1.88, 0.0], "2025/12/03": [25.72, 0.0, 2.96, 0.0], "2025/12/04": [25.3, 0.0, 2.91, 0.0], "2025/12/05": [23.01, 0.0, 2.65, 0.0], "2025/12/06": [14.59, 0.0, 1.68, 0.0], "2025/12/07": [14.84, 0.0, 1.71, 0.0], "2025/12/08": [10.9, 0.0, 1.25, 0.0], "2025/12/09": [20.17, 0.0, 2.32, 0.0], "2025/12/10": [22.08, 0.0, 2.54, 0.0], "2025/12/11": [15.32, 0.0, 1.76, 0.0], "2025/12/12": [15.51, 0.0, 1.78, 0.0], "2025/12/13": [18.29, 0.0, 2.1, 0.0], "2025/12/14": [22.95, 0.0, 2.64, 0.0], "2025/12/15": [13.91, 0.0, 1.6, 0.0], "2025/12/16": [23.26, 0.0, 2.67, 0.0], "2025/12/17": [16.66, 0.0, 1.92, 0.0], "2025/12/18": [24.97, 0.0, 2.87, 0.0], "2025/12/19": [17.04, 0.0, 1.96, 0.0], "2025/12/20": [20.87, 0.0, 2.4, 0.0], "2025/12/21": [25.61, 0.0, 2.94, 0.0], "2025/12/22": [24.78, 0.0, 2.85, 0.0], "2025/12/23": [30.31, 0.0, 3.49, 0.0], "2025/12/24": [23.51, 0.0, 2.7, 0.0], "2025/12/25": [19.66, 0.0, 2.26, 0.0], "2025/12/26": [34.26, 0.0, 3.94, 0.0], "2025/12/27": [22.53, 0.0, 2.59, 0.0], "2025/12/28": [32.05, 0.0, 3.69, 0.0], "2025/12/29": [22.34, 0.0, 2.57, 0.0], "2025/12/30": [26.6, 0.0, 3.06, 0.0], "2025/12/31": [31.0, 0.0, 3.56, 0.0], "2026/01/01": [19.89, 0.0, 2.29, 0.0], "2026/01/02": [26.79, 0.0, 3.08, 0.0], "2026/01/03": [27.31, 0.0, 3.14, 0.0], "2026/01/04": [31.16, 0.0, 3.58, 0.0], "2026/01/05": [28.86, 0.0, 3.32, 0.0], "2026/01/06": [31.25, 0.0, 3.59, 0.0], "2026/01/07": [32.34, 0.0, 3.72, 0.0], "2026/01/08": [23.23, 0.0, 2.67, 0.0], "2026/01/09": [30.25, 0.0, 3.48, 0.0], "2026/01/10": [25.7, 0.0, 2.96, 0.0], "2026/01/11": [19.99, 0.0, 2.3, 0.0], "2026/01/12": [28.16, 0.0, 3.24, 0.0], "2026/01/13": [20.85, 0.0, 2.4, 0.0], "2026/01/14": [24.01, 0.0, 2.76, 0.0], "2026/01/15": [32.58, 0.0, 3.75, 0.0], "2026/01/16": [24.76, 0.0, 2.85, 0.0], "2026/01/17": [27.66, 0.0, 3.18, 0.0], "2026/01/18": [18.47, 0.0, 2.12, 0.0], "2026/01/19": [28.11, 0.0, 3.23, 0.0], "2026/01/20": [26.87, 0.0, 3.09, 0.0], "2026/01/21": [27.06, 0.0, 3.11, 0.0], "2026/01/22": [33.79, 0.0, 3.89, 0.0], "2026/01/23": [21.82, 0.0, 2.51, 0.0], "2026/01/24": [25.59, 0.0, 2.94, 0.0], "2026/01/25": [30.05, 0.0, 3.46, 0.0], "2026/01/26": [26.08, 0.0, 3.0, 0.0], "2026/01/27": [21.79, 0.0, 2.51, 0.0], "2026/01/28": [19.02, 0.0, 2.19, 0.0], "2026/01/29": [20.71, 0.0, 2.38, 0.0], "2026/01/30": [14.62, 0.0, 1.68, 0.0], "2026/01/31": [11.81, 0.0, 1.36, 0.0], "2026/02/01": [14.06, 0.0, 1.62, 0.0], "2026/02/02": [18.46, 0.0, 2.12, 0.0], "2026/02/03": [18.15, 0.0, 2.09, 0.0], "2026/02/04": [21.5, 0.0, 2.47, 0.0], "2026/02/05": [20.13, 0.0, 2.31, 0.0], "2026/02/06": [14.42, 0.0, 1.66, 0.0], "2026/02/07": [20.82, 0.0, 2.39, 0.0], "2026/02/08": [20.01, 0.0, 2.3, 0.0], "2026/02/09": [14.92, 0.0, 1.72, 0.0], "2026/02/10": [16.77, 0.0, 1.93, 0.0], "2026/02/11": [12.26, 0.0, 1.41, 0.0], "2026/02/12": [9.86, 0.0, 1.13, 0.0], "2026/02/13": [10.83, 0.0, 1.25, 0.0], "2026/02/14": [17.22, 0.0, 1.98, 0.0], "2026/02/15": [13.9, 0.0, 1.6, 0.0], "2026/02/16": [9.32, 0.0, 1.07, 0.0], "2026/02/17": [13.17, 0.0, 1.51, 0.0], "2026/02/18": [10.03, 0.0, 1.15, 0.0], "2026/02/19": [20.23, 0.0, 2.33, 0.0], "2026/02/20": [12.45, 0.0, 1.43, 0.0], "2026/02/21": [16.89, 0.0, 1.94, 0.0], "2026/02/22": [11.94, 0.0, 1.37, 0.0], "2026/02/23": [15.41, 0.0, 1.77, 0.0], "2026/02/24": [14.67, 0.0, 1.69, 0.0], "2026/02/25": [15.32, 0.0, 1.76, 0.0], "2026/02/26": [16.09, 0.0, 1.85, 0.0], "2026/02/27": [14.61, 0.0, 1.68, 0.0], "2026/02/28": [17.98, 0.0, 2.07, 0.0], "2026/03/01": [10.02, 0.0, 1.15, 0.0], "2026/03/02": [21.46, 0.0, 2.47, 0.0], "2026/03/03": [14.65, 0.0, 1.69, 0.0], "2026/03/04": [16.56, 0.0, 1.9, 0.0], "2026/03/05": [20.5, 0.0, 2.36, 0.0], "2026/03/06": [13.02, 0.0, 1.5, 0.0], "2026/03/07": [21.29, 0.0, 2.45, 0.0], "2026/03/08": [14.37, 0.0, 1.65, 0.0], "2026/03/09": [16.59, 0.0, 1.91, 0.0], "2026/03/10": [15.29, 0.0, 1.76, 0.0], "2026/03/11": [15.02, 0.0, 1.73, 0.0], "2026/03/12": [12.56, 0.0, 1.44, 0.0], "2026/03/13": [14.74, 0.0, 1.7, 0.0], "2026/03/14": [18.7, 0.0, 2.15, 0.0], "2026/03/15": [12.4, 0.0, 1.43, 0.0], "2026/03/16": [11.11, 0.0, 1.28, 0.0], "2026/03/17": [14.29, 0.0, 1.64, 0.0], "2026/03/18": [15.54, 0.0, 1.79, 0.0], "2026/03/19": [15.38, 0.0, 1.77, 0.0], "2026/03/20": [13.66, 0.0, 1.57, 0.0], "2026/03/21": [13.56, 0.0, 1.56, 0.0], "2026/03/22": [13.56, 0.0, 1.56, 0.0], "2026/03/23": [11.79, 0.0, 1.36, 0.0], "2026/03/24": [11.88, 0.0, 1.37, 0.0], "2026/03/25": [14.78, 0.0, 1.7, 0.0], "2026/03/26": [11.82, 0.0, 1.36, 0.0], "2026/03/27": [9.85, 0.0, 1.13, 0.0], "2026/03/28": [9.26, 0.0, 1.06, 0.0], "2026/03/29": [5.57, 0.0, 0.64, 0.0], "2026/03/30": [9.62, 0.0, 1.11, 0.0], "2026/03/31": [10.24, 0.0, 1.18, 0.0], "2026/04/01": [14.84, 0.0, 1.71, 0.0], "2026/04/02": [10.53, 0.0, 1.21, 0.0], "2026/04/03": [9.27, 0.0, 1.07, 0.0], "2026/04/04": [14.72, 0.0, 1.69, 0.0], "2026/04/05": [12.66, 0.0, 1.46, 0.0], "2026/04/06": [12.99, 0.0, 1.49, 0.0], "2026/04/07": [11.06, 0.0, 1.27, 0.0], "2026/04/08": [15.29, 0.0, 1.76, 0.0], "2026/04/09": [8.98, 0.0, 1.03, 0.0], "2026/04/10": [12.3, 0.0, 1.41, 0.0], "2026/04/11": [13.64, 0.0, 1.57, 0.0], "2026/04/12": [10.88, 0.0, 1.25, 0.0], "2026/04/13": [10.86, 0.0, 1.25, 0.0], "2026/04/14": [10.23, 0.0, 1.18, 0.0], "2026/04/15": [14.64, 0.0, 1.68, 0.0], "2026/04/16": [12.6, 0.0, 1.45, 0.0], "2026/04/17": [10.46, 0.0, 1.2, 0.0], "2026/04/18": [8.83, 0.0, 1.02, 0.0], "2026/04/19": [9.83, 0.0, 1.13, 0.0], "2026/04/20": [10.6, 0.0, 1.22, 0.0], "2026/04/21": [10.97, 0.0, 1.26, 0.0], "2026/04/22": [11.15, 0.0, 1.28, 0.0], "2026/04/23": [13.13, 0.0, 1.51, 0.0], "2026/04/24": [10.27, 0.0, 1.18, 0.0], "2026/04/25": [8.1, 0.0, 0.93, 0.0], "2026/04/26": [9.24, 0.0, 1.06, 0.0], "2026/04/27": [10.65, 0.0, 1.23, 0.0], "2026/04/28": [9.83, 0.0, 1.13, 0.0], "2026/04/29": [11.5, 0.0, 1.32, 0.0], "2026/04/30": [10.81, 0.0, 1.24, 0.0], "2026/05/01": [13.32, 0.0, 1.53, 0.0], "2026/05/02": [8.29, 0.0, 0.95, 0.0], "2026/05/03": [13.31, 0.0, 1.53, 0.0], "2026/05/04": [10.45, 0.0, 1.2, 0.0], "2026/05/05": [11.22, 0.0, 1.29, 0.0], "2026/05/06": [10.23, 0.0, 1.18, 0.0], "2026/05/07": [14.18, 0.0, 1.63, 0.0], "2026/05/08": [11.22, 0.0, 1.29, 0.0], "2026/05/09": [14.93, 0.0, 1.72, 0.0], "2026/05/10": [10.39, 0.0, 1.19, 0.0], "2026/05/11": [7.6, 0.0, 0.87, 0.0], "2026/05/12": [9.02, 0.0, 1.04, 0.0], "2026/05/13": [11.67, 0.0, 1.34, 0.0], "2026/05/14": [9.7, 0.0, 1.12, 0.0], "2026/05/15": [11.2, 0.0, 1.29, 0.0], "2026/05/16": [5.88, 0.0, 0.68, 0.0], "2026/05/17": [5.75, 0.0, 0.66, 0.0], "2026/05/18": [11.08, 0.0, 1.27, 0.0], "2026/05/19": [9.65, 0.0, 1.11, 0.0], "2026/05/20": [10.8, 0.0, 1.24, 0.0], "2026/05/21": [9.79, 0.0, 1.13, 0.0], "2026/05/22": [10.33, 0.0, 1.19, 0.0], "2026/05/23": [10.94, 0.0, 1.26, 0.0], "2026/05/24": [10.57, 0.0, 1.22, 0.0], "2026/05/25": [11.88, 0.0, 1.37, 0.0], "2026/05/26": [9.99, 0.0, 1.15, 0.0], "2026/05/27": [8.96, 0.0, 1.03, 0.0], "2026/05/28": [9.27, 0.0, 1.07, 0.0], "2026/05/29": [12.15, 0.0, 1.4, 0.0], "2026/05/30": [20.32, 0.0, 2.34, 0.0], "2026/05/31": [9.71, 0.0, 1.12, 0.0], "2026/06/01": [9.01, 0.0, 1.04, 0.0], "2026/06/02": [11.6, 0.0, 1.33, 0.0], "2026/06/03": [14.5, 0.0, 1.67, 0.0], "2026/06/04": [15.27, 0.0, 1.76, 0.0], "2026/06/05": [16.17, 0.0, 1.86, 0.0], "2026/06/06": [8.26, 0.02, 0.95, 0.0], "2026/06/07": [5.97, 0.04, 0.69, 0.0], "2026/06/08": [6.87, 0.08, 0.79, 0.0], "2026/06/09": [6.57, 0.12, 0.76, 0.01], "2026/06/10": [8.03, 0.28, 0.92, 0.02], "2026/06/11": [6.09, 0.15, 0.7, 0.01], "2026/06/12": [6.33, 0.33, 0.73, 0.02], "2026/06/13": [4.53, 0.25, 0.52, 0.02], "2026/06/14": [8.57, 0.27, 0.99, 0.02], "2026/06/15": [6.79, 0.35, 0.78, 0.02], "2026/06/16": [5.6, 0.09, 0.64, 0.01], "2026/06/17": [6.7, 0.3, 0.77, 0.02], "2026/06/18": [6.16, 0.19, 0.71, 0.01], "2026/06/19": [5.91, 0.29, 0.68, 0.02], "2026/06/20": [3.98, 0.25, 0.46, 0.01], "2026/06/21": [6.11, 0.24, 0.7, 0.01], "2026/06/22": [6.63, 0.03, 0.76, 0.0], "2026/06/23": [7.76, 0.28, 0.89, 0.02], "2026/06/24": [5.98, 5.94, 0.69, 0.36], "2026/06/25": [5.63, 25.19, 0.65, 1.51], "2026/06/26": [7.06, 21.45, 0.81, 1.29], "2026/06/27": [6.93, 24.19, 0.8, 1.45], "2026/06/28": [10.32, 14.02, 1.19, 0.84], "2026/06/29": [7.65, 27.96, 0.92, 1.68], "2026/06/30": [3.45, 29.43, 0.4, 1.77], "2026/07/01": [7.8, 25.34, 0.92, 1.52], "2026/07/02": [8.45, 25.43, 0.91, 1.53], "2026/07/03": [9.47, 31.25, 1.09, 1.88], "2026/07/04": [8.99, 28.26, 0.76, 1.7], "2026/07/05": [5.65, 29.15, 0.45, 1.75], "2026/07/06": [0.18, 0.0, 0.01, 0.0]};
-const DIAS=Object.keys(R).sort();
-const MN=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-const ff=f=>{const[a,m,d]=f.split('/');return`${parseInt(d)} ${MN[parseInt(m)-1]}`;};
-const fm=ym=>{const[a,m]=ym.split('/');return`${MN[parseInt(m)-1]} ${a}`;};
-const eur=v=>v.toFixed(2).replace('.',',')+' €';
-const kwh=v=>v.toFixed(1).replace('.',',')+' kWh';
-const MESES=[...new Set(DIAS.map(d=>d.slice(0,7)))];
-const SEMS=[];for(let i=0;i<DIAS.length;i+=7)SEMS.push(DIAS.slice(i,i+7));
-let modo='semana',agr='dia',curK=null,C1=null,C2=null,vista='eur';
+const CSV_URL = "https://raw.githubusercontent.com/Sespinps68/dashboard-energia/main/data/historico.csv";
+const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-document.getElementById('st').innerHTML=`Último dato: <span class="rt">${DIAS[DIAS.length-1].replaceAll('/','-')}</span> · i-DE`;
+let RAW = {}; // {fecha: [consumo, vertido, coste, ingreso]}
+let DIAS = [];
+let modo = 'semana', agrup = 'dia';
+let C1 = null, C2 = null;
 
-function setVista(v){
-  vista=v;
-  document.getElementById('btn-eur').classList.toggle('on',v==='eur');
-  document.getElementById('btn-kwh').classList.toggle('on',v==='kwh');
-  document.getElementById('kpi-eur').style.display=v==='eur'?'grid':'none';
-  document.getElementById('kpi-kwh').style.display=v==='kwh'?'grid':'none';
-  if(curK) render(curK);
-}
+function ff(f){ const[a,m,d]=f.split('/'); return `${parseInt(d)} ${MN[parseInt(m)-1]}`; }
+function fm(ym){ const[a,m]=ym.split('/'); return `${MN[parseInt(m)-1]} ${a}`; }
+function eur(v){ return v.toFixed(2).replace('.',',')+'&nbsp;€'; }
+function kwh(v){ return v.toFixed(1).replace('.',',')+'&nbsp;kWh'; }
 
-function grp(dias,t){
-  if(t==='dia')return dias.map(d=>({key:d,label:ff(d),v:[...(R[d]||[0,0,0,0])]}));
-  const g={};
+// ── Agrupación dinámica ────────────────────────────────────────
+function agrupar(dias, tipo){
+  if(tipo==='dia') return dias.map(d=>({key:d, label:ff(d), data:[...RAW[d]]}));
+
+  const grupos = {};
+  const getKey = d => {
+    if(tipo==='mes') return d.slice(0,7);
+    // semana ISO: lunes de esa semana
+    const dt = new Date(d.replace(/\//g,'-'));
+    const day = dt.getDay()||7;
+    dt.setDate(dt.getDate()-day+1);
+    return dt.toISOString().slice(0,10).replace(/-/g,'/');
+  };
   dias.forEach(d=>{
-    const k=t==='mes'?d.slice(0,7):(()=>{const dt=new Date(d.replace(/\//g,'-'));const dy=dt.getDay()||7;dt.setDate(dt.getDate()-dy+1);return dt.toISOString().slice(0,10).replace(/-/g,'/')})();
-    if(!g[k]){g[k]={key:k,label:'',v:[0,0,0,0],ds:[]};}
-    g[k].ds.push(d);const r=R[d]||[0,0,0,0];g[k].v=g[k].v.map((x,i)=>+(x+r[i]).toFixed(2));
+    const k = getKey(d);
+    if(!grupos[k]) grupos[k]={key:k, label:'', data:[0,0,0,0], dias:[]};
+    grupos[k].dias.push(d);
+    const r=RAW[d];
+    grupos[k].data=grupos[k].data.map((v,i)=>+(v+r[i]).toFixed(2));
   });
-  Object.values(g).forEach(x=>{x.label=t==='mes'?fm(x.key):`${ff(x.ds[0])}–${ff(x.ds[x.ds.length-1])}`;});
-  return Object.values(g).sort((a,b)=>a.key.localeCompare(b.key));
+  Object.values(grupos).forEach(g=>{
+    if(tipo==='mes') g.label=fm(g.key);
+    else g.label=`${ff(g.dias[0])}–${ff(g.dias[g.dias.length-1])}`;
+  });
+  return Object.values(grupos).sort((a,b)=>a.key.localeCompare(b.key));
 }
 
-function fil(k){
-  if(modo==='semana')return SEMS[parseInt(k)]||[];
-  if(modo==='mes')return DIAS.filter(d=>d.startsWith(k));
-  if(modo==='dia')return[k];
-  if(modo==='periodo'){const[d1,d2]=k.split('|');return DIAS.filter(d=>d>=d1&&d<=d2);}
-  return[];
+// ── Filtrar días según el periodo seleccionado ─────────────────
+function filtraDias(key){
+  if(modo==='semana'){
+    // semanas del histórico
+    const sems=[];
+    for(let i=0;i<DIAS.length;i+=7) sems.push(DIAS.slice(i,i+7));
+    return sems[parseInt(key)]||[];
+  }
+  if(modo==='mes') return DIAS.filter(d=>d.startsWith(key));
+  if(modo==='dia') return [key];
+  if(modo==='periodo'){const[d1,d2]=key.split('|');return DIAS.filter(d=>d>=d1&&d<=d2);}
+  return [];
 }
 
-function render(k){
-  const dias=fil(k);if(!dias.length)return;
-  const gs=grp(dias,agr);
-  const tG=gs.reduce((s,g)=>s+g.v[2],0);
-  const tI=gs.reduce((s,g)=>s+g.v[3],0);
-  const tC=gs.reduce((s,g)=>s+g.v[0],0);
-  const tV=gs.reduce((s,g)=>s+g.v[1],0);
-  const balEur=tI-tG;
-  const balKwh=tV-tC;
+// ── Render principal ───────────────────────────────────────────
+function render(key){
+  const dias = filtraDias(key);
+  if(!dias.length) return;
+
+  // Agrupación
+  const grupos = agrupar(dias, agrup);
+  const tG=grupos.reduce((s,g)=>s+g.data[2],0);
+  const tI=grupos.reduce((s,g)=>s+g.data[3],0);
+  const tC=grupos.reduce((s,g)=>s+g.data[0],0);
+  const tV=grupos.reduce((s,g)=>s+g.data[1],0);
+  const bal=tI-tG;
   const sub=dias.length===1?ff(dias[0]):`${ff(dias[0])} – ${ff(dias[dias.length-1])}`;
 
-  // KPIs euros
-  document.getElementById('kg').textContent=eur(tG);document.getElementById('kgs').textContent=sub;
-  document.getElementById('ki').textContent=eur(tI);document.getElementById('kis').textContent=sub;
-  const kb=document.getElementById('kb');kb.textContent=(balEur>=0?'+':'')+eur(balEur);kb.className='vl '+(balEur>=0?'p':'n');
-  document.getElementById('kc-e').textContent=kwh(tC);
-  document.getElementById('kv-e').textContent=kwh(tV);
+  // KPIs
+  document.getElementById('kg').innerHTML=eur(tG);
+  document.getElementById('kgs').textContent=sub;
+  document.getElementById('ki').innerHTML=eur(tI);
+  document.getElementById('kis').textContent=sub;
+  const kb=document.getElementById('kb');
+  kb.innerHTML=(bal>=0?'+':'')+eur(bal);
+  kb.className='val '+(bal>=0?'pos':'neg');
+  document.getElementById('kc').innerHTML=kwh(tC);
+  document.getElementById('kv').innerHTML=kwh(tV);
+  document.getElementById('dcb').innerHTML=(bal>=0?'+':'')+eur(bal);
+  const tot=tG+tI||0.001;
+  document.getElementById('lg').innerHTML=`Gasto ${eur(tG)} (${Math.round(tG/tot*100)}%)`;
+  document.getElementById('li').innerHTML=`Ingreso ${eur(tI)} (${Math.round(tI/tot*100)}%)`;
 
-  // KPIs kWh
-  document.getElementById('kc-k').textContent=kwh(tC);document.getElementById('kck-s').textContent=sub;
-  document.getElementById('kv-k').textContent=kwh(tV);document.getElementById('kvk-s').textContent=sub;
-  const kbk=document.getElementById('kb-k');kbk.textContent=(balKwh>=0?'+':'')+kwh(balKwh);kbk.className='vl '+(balKwh>=0?'p':'n');
-  document.getElementById('kg-k').textContent=eur(tG);
-  document.getElementById('ki-k').textContent=eur(tI);
+  // Donut
+  if(C1) C1.destroy();
+  C1=new Chart(document.getElementById('ch1'),{
+    type:'doughnut',
+    data:{labels:['Gasto','Ingreso'],datasets:[{data:[+tG.toFixed(2),+tI.toFixed(2)],backgroundColor:['#e34948','#1baf7a'],borderWidth:0,hoverOffset:6}]},
+    options:{responsive:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.toFixed(2).replace('.',',')+' €'}}}}
+  });
 
-  if(vista==='eur'){
-    // Donut euros
-    document.getElementById('donut-title').textContent='Reparto económico';
-    document.getElementById('dcb').textContent=(balEur>=0?'+':'')+eur(balEur);
-    document.getElementById('dcl').textContent='balance €';
-    document.getElementById('lg').textContent=`Gasto ${eur(tG)} (${Math.round(tG/(tG+tI||1)*100)}%)`;
-    document.getElementById('li').textContent=`Ingreso ${eur(tI)} (${Math.round(tI/(tG+tI||1)*100)}%)`;
-    document.getElementById('bars-title').textContent='Gasto e ingreso por periodo';
-    document.getElementById('bl1').textContent='Gasto €';
-    document.getElementById('bl2').textContent='Ingreso €';
-    // Extremos euros
-    document.getElementById('ext-g-title').textContent='Extremos de gasto';
-    document.getElementById('ext-g1-lbl').textContent='Período más caro';
-    document.getElementById('ext-g2-lbl').textContent='Período más barato';
-    document.getElementById('ext-i-title').textContent='Extremos de ingreso';
-    document.getElementById('ext-i1-lbl').textContent='Mejor período';
-    document.getElementById('ext-i2-lbl').textContent='Peor período';
+  // Barras con zoom
+  const maxG=Math.max(...grupos.map(g=>g.data[2]));
+  const minG=Math.min(...grupos.map(g=>g.data[2]));
+  const maxI=Math.max(...grupos.map(g=>g.data[3]));
+  const minI=Math.min(...grupos.map(g=>g.data[3]));
+  const bgG=grupos.map(g=>g.data[2]===maxG?'#e34948':g.data[2]===minG?'#f5c0c0':'#e3494860');
+  const bgI=grupos.map(g=>g.data[3]===maxI?'#1baf7a':g.data[3]===minI?'#b0e8d0':'#1baf7a60');
 
-    const mxG=Math.max(...gs.map(g=>g.v[2])),mnG=Math.min(...gs.map(g=>g.v[2]));
-    const mxI=Math.max(...gs.map(g=>g.v[3])),mnI=Math.min(...gs.map(g=>g.v[3]));
-    const gX=gs.find(g=>g.v[2]===mxG),gN=gs.find(g=>g.v[2]===mnG);
-    const iX=gs.find(g=>g.v[3]===mxI),iN=gs.find(g=>g.v[3]===mnI);
-    document.getElementById('egmd').textContent=gX.label;document.getElementById('egmv').textContent=eur(mxG);
-    document.getElementById('egnmd').textContent=gN.label;document.getElementById('egnmv').textContent=eur(mnG);
-    document.getElementById('eimd').textContent=iX.label;document.getElementById('eimv').textContent=eur(mxI);
-    document.getElementById('einmd').textContent=iN.label;document.getElementById('einmv').textContent=eur(mnI);
-  renderCmp(dias);
+  if(C2) C2.destroy();
+  C2=new Chart(document.getElementById('ch2'),{
+    type:'bar',
+    data:{labels:grupos.map(g=>g.label),datasets:[
+      {label:'Gasto €',data:grupos.map(g=>+g.data[2].toFixed(2)),backgroundColor:bgG,borderRadius:3},
+      {label:'Ingreso €',data:grupos.map(g=>+g.data[3].toFixed(2)),backgroundColor:bgI,borderRadius:3}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y.toFixed(2).replace('.',',')+' €'}},
+        zoom:{
+          zoom:{wheel:{enabled:true},pinch:{enabled:true},mode:'x',drag:{enabled:true,backgroundColor:'rgba(28,33,23,0.08)'}},
+          pan:{enabled:true,mode:'x'},
+          limits:{x:{minRange:1}}
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#898781',font:{size:9},maxRotation:45,autoSkip:false},grid:{display:false}},
+        y:{ticks:{color:'#898781',font:{size:9},callback:v=>v.toFixed(2)+'€'},grid:{color:'rgba(0,0,0,0.05)'}}
+      },
+      onDblClick: ()=>{ C2.resetZoom(); }
+    }
+  });
 
-    if(C1)C1.destroy();
-    C1=new Chart(document.getElementById('c1'),{type:'doughnut',
-      data:{labels:['Gasto','Ingreso'],datasets:[{data:[+tG.toFixed(2),+tI.toFixed(2)],backgroundColor:['#e34948','#1baf7a'],borderWidth:0,hoverOffset:6}]},
-      options:{responsive:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+eur(ctx.parsed)}}}}
-    });
-
-    const bgG=gs.map(g=>g.v[2]===mxG?'#e34948':g.v[2]===mnG?'#f5c0c0':'#e3494860');
-    const bgI=gs.map(g=>g.v[3]===mxI?'#1baf7a':g.v[3]===mnI?'#b0e8d0':'#1baf7a60');
-    if(C2)C2.destroy();
-    C2=new Chart(document.getElementById('c2'),{type:'bar',
-      data:{labels:gs.map(g=>g.label),datasets:[
-        {label:'Gasto €',data:gs.map(g=>+g.v[2].toFixed(2)),backgroundColor:bgG,borderRadius:3},
-        {label:'Ingreso €',data:gs.map(g=>+g.v[3].toFixed(2)),backgroundColor:bgI,borderRadius:3}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+eur(ctx.parsed.y)}}},
-        scales:{x:{ticks:{color:'#898781',font:{size:9},maxRotation:45,autoSkip:false},grid:{display:false}},
-                y:{ticks:{color:'#898781',font:{size:9},callback:v=>v.toFixed(2)+'€'},grid:{color:'rgba(0,0,0,0.05)'}}}
-      }
-    });
-
-  } else {
-    // Vista kWh
-    document.getElementById('donut-title').textContent='Reparto energético';
-    document.getElementById('dcb').textContent=(balKwh>=0?'+':'')+kwh(balKwh);
-    document.getElementById('dcl').textContent='balance kWh';
-    document.getElementById('lg').textContent=`Consumo ${kwh(tC)} (${Math.round(tC/(tC+tV||1)*100)}%)`;
-    document.getElementById('li').textContent=`Vertido ${kwh(tV)} (${Math.round(tV/(tC+tV||1)*100)}%)`;
-    document.getElementById('bars-title').textContent='Consumo y vertido por periodo';
-    document.getElementById('bl1').textContent='Consumo kWh';
-    document.getElementById('bl2').textContent='Vertido kWh';
-    document.getElementById('ext-g-title').textContent='Extremos de consumo';
-    document.getElementById('ext-g1-lbl').textContent='Día con más consumo';
-    document.getElementById('ext-g2-lbl').textContent='Día con menos consumo';
-    document.getElementById('ext-i-title').textContent='Extremos de vertido';
-    document.getElementById('ext-i1-lbl').textContent='Día con más vertido';
-    document.getElementById('ext-i2-lbl').textContent='Día con menos vertido';
-
-    const mxC=Math.max(...gs.map(g=>g.v[0])),mnC=Math.min(...gs.map(g=>g.v[0]));
-    const mxV=Math.max(...gs.map(g=>g.v[1])),mnV=Math.min(...gs.map(g=>g.v[1]));
-    const cX=gs.find(g=>g.v[0]===mxC),cN=gs.find(g=>g.v[0]===mnC);
-    const vX=gs.find(g=>g.v[1]===mxV),vN=gs.find(g=>g.v[1]===mnV);
-    document.getElementById('egmd').textContent=cX.label;document.getElementById('egmv').textContent=kwh(mxC);
-    document.getElementById('egnmd').textContent=cN.label;document.getElementById('egnmv').textContent=kwh(mnC);
-    document.getElementById('eimd').textContent=vX.label;document.getElementById('eimv').textContent=kwh(mxV);
-    document.getElementById('einmd').textContent=vN.label;document.getElementById('einmv').textContent=kwh(mnV);
-  renderCmp(dias);
-
-    if(C1)C1.destroy();
-    C1=new Chart(document.getElementById('c1'),{type:'doughnut',
-      data:{labels:['Consumo','Vertido'],datasets:[{data:[+tC.toFixed(1),+tV.toFixed(1)],backgroundColor:['#e34948','#1baf7a'],borderWidth:0,hoverOffset:6}]},
-      options:{responsive:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+kwh(ctx.parsed)}}}}
-    });
-
-    const bgC=gs.map(g=>g.v[0]===mxC?'#e34948':g.v[0]===mnC?'#f5c0c0':'#e3494860');
-    const bgV=gs.map(g=>g.v[1]===mxV?'#1baf7a':g.v[1]===mnV?'#b0e8d0':'#1baf7a60');
-    if(C2)C2.destroy();
-    C2=new Chart(document.getElementById('c2'),{type:'bar',
-      data:{labels:gs.map(g=>g.label),datasets:[
-        {label:'Consumo kWh',data:gs.map(g=>+g.v[0].toFixed(2)),backgroundColor:bgC,borderRadius:3},
-        {label:'Vertido kWh',data:gs.map(g=>+g.v[1].toFixed(2)),backgroundColor:bgV,borderRadius:3}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+kwh(ctx.parsed.y)}}},
-        scales:{x:{ticks:{color:'#898781',font:{size:9},maxRotation:45,autoSkip:false},grid:{display:false}},
-                y:{ticks:{color:'#898781',font:{size:9},callback:v=>v.toFixed(1)+' kWh'},grid:{color:'rgba(0,0,0,0.05)'}}}
-      }
-    });
-  }
+  // Extremos
+  const gMax=grupos.reduce((a,b)=>a.data[2]>b.data[2]?a:b);
+  const gMin=grupos.reduce((a,b)=>a.data[2]<b.data[2]?a:b);
+  const iMax=grupos.reduce((a,b)=>a.data[3]>b.data[3]?a:b);
+  const iMin=grupos.reduce((a,b)=>a.data[3]<b.data[3]?a:b);
+  document.getElementById('egmd').textContent=gMax.label;
+  document.getElementById('egmv').innerHTML=eur(gMax.data[2]);
+  document.getElementById('egnmd').textContent=gMin.label;
+  document.getElementById('egnmv').innerHTML=eur(gMin.data[2]);
+  document.getElementById('eimd').textContent=iMax.label;
+  document.getElementById('eimv').innerHTML=eur(iMax.data[3]);
+  document.getElementById('einmd').textContent=iMin.label;
+  document.getElementById('einmv').innerHTML=eur(iMin.data[3]);
 }
 
-function bldE_orig(){
-}
-function bldE(){
-  curK=null;
-  if(C1){C1.destroy();C1=null;}
-  if(C2){C2.destroy();C2=null;}
-  const ex=document.getElementById('ex');ex.innerHTML='';
-  document.getElementById('ag').className='ag'+(modo==='mes'||modo==='periodo'?' on':'');
+// ── Controles de periodo ───────────────────────────────────────
+let currentKey = null;
+
+function buildExtra(){
+  const ex=document.getElementById('extra');
+  ex.innerHTML='';
+  const MESES=[...new Set(DIAS.map(d=>d.slice(0,7)))];
+  const SEMANAS=[];
+  for(let i=0;i<DIAS.length;i+=7) SEMANAS.push(DIAS.slice(i,i+7));
+
+  const agrupWrap=document.getElementById('agrup-wrap');
+  agrupWrap.style.display=(modo==='mes'||modo==='periodo')?'flex':'none';
+
   if(modo==='semana'){
     const s=document.createElement('select');
-    SEMS.forEach((sw,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${ff(sw[0])} – ${ff(sw[sw.length-1])}`;if(i===SEMS.length-1)o.selected=true;s.appendChild(o);});
-    s.onchange=()=>{curK=s.value;render(s.value);};ex.appendChild(s);curK=String(SEMS.length-1);render(curK);
-  }else if(modo==='mes'){
-    const s=document.createElement('select');[...MESES].reverse().forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=fm(m);s.appendChild(o);});
-    s.onchange=()=>{curK=s.value;render(s.value);};ex.appendChild(s);curK=MESES[MESES.length-1];render(curK);
-  }else if(modo==='dia'){
-    const s=document.createElement('select');[...DIAS].reverse().forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=ff(d);s.appendChild(o);});
-    s.onchange=()=>{curK=s.value;render(s.value);};ex.appendChild(s);curK=DIAS[DIAS.length-1];render(curK);
-  }else{
-    const d1=document.createElement('input');d1.type='date';d1.value=DIAS[0].replaceAll('/','-');d1.min=DIAS[0].replaceAll('/','-');d1.max=DIAS[DIAS.length-1].replaceAll('/','-');
-    const sp=document.createElement('span');sp.className='sp';sp.textContent='→';
-    const d2=document.createElement('input');d2.type='date';d2.value=DIAS[DIAS.length-1].replaceAll('/','-');d2.min=DIAS[0].replaceAll('/','-');d2.max=DIAS[DIAS.length-1].replaceAll('/','-');
-    const btn=document.createElement('button');btn.textContent='Ver';btn.style.cssText='font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #c8ccc4;background:#1c2117;color:#fff;cursor:pointer;margin-left:4px';
-    const go=()=>{curK=d1.value.replaceAll('-','/')+'|'+d2.value.replaceAll('-','/');render(curK);};
-    btn.onclick=go;
-    ex.appendChild(d1);ex.appendChild(sp);ex.appendChild(d2);ex.appendChild(btn);
+    SEMANAS.forEach((sw,i)=>{
+      const o=document.createElement('option');
+      o.value=i;
+      o.textContent=`${ff(sw[0])} – ${ff(sw[sw.length-1])}`;
+      if(i===SEMANAS.length-2) o.selected=true;
+      s.appendChild(o);
+    });
+    s.onchange=()=>{currentKey=s.value;render(s.value);};
+    ex.appendChild(s);
+    currentKey=String(SEMANAS.length-2);
+    render(currentKey);
+  } else if(modo==='mes'){
+    const s=document.createElement('select');
+    [...MESES].reverse().forEach(m=>{
+      const o=document.createElement('option');o.value=m;o.textContent=fm(m);s.appendChild(o);
+    });
+    s.onchange=()=>{currentKey=s.value;render(s.value);};
+    ex.appendChild(s);
+    currentKey=MESES[MESES.length-1];
+    render(currentKey);
+  } else if(modo==='dia'){
+    const s=document.createElement('select');
+    [...DIAS].reverse().forEach(d=>{
+      const o=document.createElement('option');o.value=d;o.textContent=ff(d)+' ('+d.slice(0,7)+')';s.appendChild(o);
+    });
+    s.onchange=()=>{currentKey=s.value;render(s.value);};
+    ex.appendChild(s);
+    currentKey=DIAS[DIAS.length-1];
+    render(currentKey);
+  } else {
+    const d1=document.createElement('input');d1.type='date';d1.value='2026-06-01';
+    d1.min=DIAS[0].replaceAll('/','-');d1.max=DIAS[DIAS.length-1].replaceAll('/','-');
+    const sp=document.createElement('span');sp.className='sep';sp.textContent='→';
+    const d2=document.createElement('input');d2.type='date';d2.value=DIAS[DIAS.length-1].replaceAll('/','-');
+    d2.min=DIAS[0].replaceAll('/','-');d2.max=DIAS[DIAS.length-1].replaceAll('/','-');
+    const go=()=>{currentKey=d1.value.replaceAll('-','/')+  '|'+d2.value.replaceAll('-','/');render(currentKey);};
+    d1.onchange=go;d2.onchange=go;
+    ex.appendChild(d1);ex.appendChild(sp);ex.appendChild(d2);
+    go();
   }
 }
 
-function renderCmp(dias) {
-  const card = document.getElementById('cmp-card');
-  const dias26 = dias.filter(d => d.startsWith('2026'));
-  const dias25 = dias26.map(d => d.replace('2026','2025')).filter(d => R[d]);
-  if (!dias26.length || !dias25.length) {
-    card.className = 'no-cmp';
-    card.textContent = 'Sin datos del año anterior para este periodo';
+function clickP(btn){
+  document.querySelectorAll('.pbar button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  modo=btn.dataset.p;
+  buildExtra();
+}
+
+function clickG(btn){
+  document.querySelectorAll('.agrup button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  agrup=btn.dataset.g;
+  if(currentKey) render(currentKey);
+}
+
+// ── Carga del CSV ──────────────────────────────────────────────
+async function init(){
+  let txt;
+  try{
+    const r=await fetch(CSV_URL+'?t='+Date.now());
+    if(!r.ok) throw new Error();
+    txt=await r.text();
+  } catch(e){
+    document.getElementById('vacio').style.display='block';
+    document.getElementById('estado').textContent='Sin datos todavía';
     return;
   }
-  const t26g = dias26.reduce((s,d)=>s+(R[d]||[0,0,0,0])[2],0);
-  const t26i = dias26.reduce((s,d)=>s+(R[d]||[0,0,0,0])[3],0);
-  const t25g = dias25.reduce((s,d)=>s+(R[d]||[0,0,0,0])[2],0);
-  const t25i = dias25.reduce((s,d)=>s+(R[d]||[0,0,0,0])[3],0);
-  const t26 = t26g - t26i;
-  const t25 = t25g - t25i;
-  const ahorro = t25 - t26;
-  const sub25 = dias25.length===1 ? ff(dias25[0]) : `${ff(dias25[0])} – ${ff(dias25[dias25.length-1])}`;
-  const sub26 = dias26.length===1 ? ff(dias26[0]) : `${ff(dias26[0])} – ${ff(dias26[dias26.length-1])}`;
-  card.className = 'cmp';
-  card.innerHTML = `
-    <div class="cmp-blk">
-      <div class="cmp-lbl">Coste neto ${dias25[0].slice(0,4)} (año anterior)</div>
-      <div class="cmp-val">${eur(t25)}</div>
-      <div class="cmp-sub">${sub25}</div>
-    </div>
-    <div class="cmp-sep"></div>
-    <div class="cmp-blk">
-      <div class="cmp-lbl">Coste neto ${dias26[0].slice(0,4)} (este año)</div>
-      <div class="cmp-val">${eur(t26)}</div>
-      <div class="cmp-sub">${sub26}</div>
-    </div>
-    <div class="cmp-sep"></div>
-    <div class="cmp-blk">
-      <div class="cmp-lbl">${ahorro>=0?'Ahorro':'Incremento'} con los paneles</div>
-      <div class="cmp-ahorro ${ahorro>=0?'pos':'neg'}">${ahorro>=0?'▼ -':'▲ +'}${eur(Math.abs(ahorro))}</div>
-      <div class="cmp-sub">${ahorro>=0?'gastas menos que hace un año':'gastas más que hace un año'}</div>
-    </div>`;
+
+  const filas=txt.trim().split('\n').slice(1).filter(Boolean);
+  if(!filas.length){document.getElementById('vacio').style.display='block';return;}
+
+  filas.forEach(l=>{
+    const[fecha,hora,consumo,vertido,,coste,ingreso]=l.split(',');
+    if(!RAW[fecha]) RAW[fecha]=[0,0,0,0];
+    RAW[fecha][0]+=parseFloat(consumo)||0;
+    RAW[fecha][1]+=parseFloat(vertido)||0;
+    RAW[fecha][2]+=parseFloat(coste)||0;
+    RAW[fecha][3]+=parseFloat(ingreso)||0;
+  });
+  Object.keys(RAW).forEach(k=>RAW[k]=RAW[k].map(v=>+v.toFixed(2)));
+  DIAS=Object.keys(RAW).sort();
+
+  const ultima=DIAS[DIAS.length-1];
+  const hoyStr=new Date();
+  const hoy=`${hoyStr.getFullYear()}/${String(hoyStr.getMonth()+1).padStart(2,'0')}/${String(hoyStr.getDate()).padStart(2,'0')}`;
+  const esHoy=ultima===hoy;
+  document.getElementById('estado').innerHTML=esHoy
+    ?`Actualizado · último dato ${ultima.replaceAll('/','-')}`
+    :`Último dato: <span class="retraso">${ultima.replaceAll('/','-')}</span> (Datadis va 1-2 días por detrás)`;
+
+  document.getElementById('app').style.display='block';
+  buildExtra();
 }
 
+// Resetear zoom con doble clic en el canvas
+document.addEventListener('dblclick',e=>{if(e.target.id==='ch2'&&C2) C2.resetZoom();});
 
-function cP(btn){document.querySelectorAll('.pb button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');modo=btn.dataset.p;bldE();}
-function cG(btn){document.querySelectorAll('.ag button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');agr=btn.dataset.g;if(curK&&!curK.includes('|'))render(curK);else if(curK&&curK.includes('|'))render(curK);}
-bldE();
+async function cargarStatus() {
+  try {
+    const r = await fetch("https://raw.githubusercontent.com/Sespinps68/dashboard-energia/main/data/status.json?t=" + Date.now());
+    if (!r.ok) throw new Error();
+    const s = await r.json();
+    if (s.ultima_conexion_fecha) {
+      document.getElementById('st-cx').textContent = s.ultima_conexion_fecha.replaceAll('/','-') + ' ' + s.ultima_conexion_hora + 'h';
+      document.getElementById('dot-cx').className = 'status-dot ' + (s.conexion_ok ? 'ok' : 'err');
+    }
+    if (s.ultimo_dato_fecha) {
+      document.getElementById('st-dt').textContent = s.ultimo_dato_fecha.replaceAll('/','-') + ' ' + s.ultimo_dato_hora + 'h';
+      const diff = (Date.now() - new Date(s.ultimo_dato_fecha.replace(/\//g,'-') + 'T' + s.ultimo_dato_hora)) / 86400000;
+      document.getElementById('dot-dt').className = 'status-dot ' + (diff < 3 ? 'ok' : 'unk');
+    }
+  } catch(e) {
+    document.getElementById('st-cx').textContent = 'Pendiente primera ejecución';
+    document.getElementById('st-dt').textContent = '—';
+  }
+}
+
+cargarStatus();
+init();
 </script>
 </body>
 </html>
