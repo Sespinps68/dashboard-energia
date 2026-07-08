@@ -4,17 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Mi Energía</title>
+<link rel="icon" type="image/svg+xml" href="solar-icon.svg">
+<link rel="apple-touch-icon" href="solar-icon.svg">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2/dist/chartjs-plugin-zoom.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hammerjs@2/hammer.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#f5f6f4;color:#1c2117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding-bottom:40px}
-header{padding:24px 20px 16px;background:#fff;border-bottom:1px solid #e5e8e2;margin-bottom:16px}
+header{padding:20px 20px 14px;background:#fff;border-bottom:1px solid #e5e8e2;margin-bottom:16px}
 .eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#767f70;margin-bottom:4px;font-family:ui-monospace,monospace}
-h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
-#estado{font-size:12px;color:#767f70;margin-top:4px;font-family:ui-monospace,monospace}
-#estado .retraso{color:#e08a2c}
+h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-bottom:8px}
+.status-bar{display:flex;gap:20px;flex-wrap:wrap}
+.status-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#767f70;font-family:ui-monospace,monospace}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#c0c4bb}
+.status-dot.ok{background:#1baf7a;box-shadow:0 0 6px #1baf7a88}
+.status-dot.err{background:#e34948;box-shadow:0 0 6px #e3494888}
+.status-dot.unk{background:#e08a2c}
+.status-val{color:#1c2117;font-weight:500}
 .wrap{padding:0 16px}
 .pbar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .pbar button{font-size:13px;padding:5px 13px;border-radius:8px;border:1px solid #d0d4cc;background:transparent;color:#5a5f55;cursor:pointer;transition:all .15s}
@@ -54,21 +61,22 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
 #vacio strong{display:block;color:#1c2117;font-size:16px;margin-bottom:8px}
 .footer{text-align:center;font-size:10px;color:#bbb;margin-top:20px;font-family:ui-monospace,monospace}
 @media(max-width:540px){.krow{grid-template-columns:repeat(2,1fr)}.crow,.erow{grid-template-columns:1fr}}
-
-.status-bar{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
-.status-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#767f70;font-family:ui-monospace,monospace}
-.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.status-dot.ok{background:#1baf7a;box-shadow:0 0 6px #1baf7a88}
-.status-dot.err{background:#e34948;box-shadow:0 0 6px #e3494888}
-.status-dot.unk{background:#c0c4bb}
-.status-val{color:#1c2117;font-weight:500}
 </style>
 </head>
 <body>
 <header>
   <p class="eyebrow">Torre Pacheco · ASW6000H-S2</p>
   <h1>Mi Energía</h1>
-  <p id="estado">Cargando datos…</p>
+  <div class="status-bar">
+    <div class="status-item">
+      <span class="status-dot" id="dot-cx"></span>
+      Última conexión: <span class="status-val" id="st-cx">—</span>
+    </div>
+    <div class="status-item">
+      <span class="status-dot" id="dot-dt"></span>
+      Último dato con vertido: <span class="status-val" id="st-dt">—</span>
+    </div>
+  </div>
 </header>
 
 <div id="vacio" style="display:none"><strong>Sin datos todavía</strong>La actualización automática llega cada día a las 6:00.</div>
@@ -127,9 +135,10 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
 
 <script>
 const CSV_URL = "https://raw.githubusercontent.com/Sespinps68/dashboard-energia/main/data/historico.csv";
+const STATUS_URL = "https://raw.githubusercontent.com/Sespinps68/dashboard-energia/main/data/status.json";
 const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-let RAW = {}; // {fecha: [consumo, vertido, coste, ingreso]}
+let RAW = {};
 let DIAS = [];
 let modo = 'semana', agrup = 'dia';
 let C1 = null, C2 = null;
@@ -139,14 +148,11 @@ function fm(ym){ const[a,m]=ym.split('/'); return `${MN[parseInt(m)-1]} ${a}`; }
 function eur(v){ return v.toFixed(2).replace('.',',')+'&nbsp;€'; }
 function kwh(v){ return v.toFixed(1).replace('.',',')+'&nbsp;kWh'; }
 
-// ── Agrupación dinámica ────────────────────────────────────────
 function agrupar(dias, tipo){
   if(tipo==='dia') return dias.map(d=>({key:d, label:ff(d), data:[...RAW[d]]}));
-
   const grupos = {};
   const getKey = d => {
     if(tipo==='mes') return d.slice(0,7);
-    // semana ISO: lunes de esa semana
     const dt = new Date(d.replace(/\//g,'-'));
     const day = dt.getDay()||7;
     dt.setDate(dt.getDate()-day+1);
@@ -166,10 +172,8 @@ function agrupar(dias, tipo){
   return Object.values(grupos).sort((a,b)=>a.key.localeCompare(b.key));
 }
 
-// ── Filtrar días según el periodo seleccionado ─────────────────
 function filtraDias(key){
   if(modo==='semana'){
-    // semanas del histórico
     const sems=[];
     for(let i=0;i<DIAS.length;i+=7) sems.push(DIAS.slice(i,i+7));
     return sems[parseInt(key)]||[];
@@ -180,12 +184,9 @@ function filtraDias(key){
   return [];
 }
 
-// ── Render principal ───────────────────────────────────────────
 function render(key){
   const dias = filtraDias(key);
   if(!dias.length) return;
-
-  // Agrupación
   const grupos = agrupar(dias, agrup);
   const tG=grupos.reduce((s,g)=>s+g.data[2],0);
   const tI=grupos.reduce((s,g)=>s+g.data[3],0);
@@ -193,8 +194,6 @@ function render(key){
   const tV=grupos.reduce((s,g)=>s+g.data[1],0);
   const bal=tI-tG;
   const sub=dias.length===1?ff(dias[0]):`${ff(dias[0])} – ${ff(dias[dias.length-1])}`;
-
-  // KPIs
   document.getElementById('kg').innerHTML=eur(tG);
   document.getElementById('kgs').textContent=sub;
   document.getElementById('ki').innerHTML=eur(tI);
@@ -208,23 +207,18 @@ function render(key){
   const tot=tG+tI||0.001;
   document.getElementById('lg').innerHTML=`Gasto ${eur(tG)} (${Math.round(tG/tot*100)}%)`;
   document.getElementById('li').innerHTML=`Ingreso ${eur(tI)} (${Math.round(tI/tot*100)}%)`;
-
-  // Donut
   if(C1) C1.destroy();
   C1=new Chart(document.getElementById('ch1'),{
     type:'doughnut',
     data:{labels:['Gasto','Ingreso'],datasets:[{data:[+tG.toFixed(2),+tI.toFixed(2)],backgroundColor:['#e34948','#1baf7a'],borderWidth:0,hoverOffset:6}]},
     options:{responsive:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.toFixed(2).replace('.',',')+' €'}}}}
   });
-
-  // Barras con zoom
   const maxG=Math.max(...grupos.map(g=>g.data[2]));
   const minG=Math.min(...grupos.map(g=>g.data[2]));
   const maxI=Math.max(...grupos.map(g=>g.data[3]));
   const minI=Math.min(...grupos.map(g=>g.data[3]));
   const bgG=grupos.map(g=>g.data[2]===maxG?'#e34948':g.data[2]===minG?'#f5c0c0':'#e3494860');
   const bgI=grupos.map(g=>g.data[3]===maxI?'#1baf7a':g.data[3]===minI?'#b0e8d0':'#1baf7a60');
-
   if(C2) C2.destroy();
   C2=new Chart(document.getElementById('ch2'),{
     type:'bar',
@@ -239,8 +233,7 @@ function render(key){
         tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y.toFixed(2).replace('.',',')+' €'}},
         zoom:{
           zoom:{wheel:{enabled:true},pinch:{enabled:true},mode:'x',drag:{enabled:true,backgroundColor:'rgba(28,33,23,0.08)'}},
-          pan:{enabled:true,mode:'x'},
-          limits:{x:{minRange:1}}
+          pan:{enabled:true,mode:'x'},limits:{x:{minRange:1}}
         }
       },
       scales:{
@@ -250,8 +243,6 @@ function render(key){
       onDblClick: ()=>{ C2.resetZoom(); }
     }
   });
-
-  // Extremos
   const gMax=grupos.reduce((a,b)=>a.data[2]>b.data[2]?a:b);
   const gMin=grupos.reduce((a,b)=>a.data[2]<b.data[2]?a:b);
   const iMax=grupos.reduce((a,b)=>a.data[3]>b.data[3]?a:b);
@@ -266,19 +257,19 @@ function render(key){
   document.getElementById('einmv').innerHTML=eur(iMin.data[3]);
 }
 
-// ── Controles de periodo ───────────────────────────────────────
 let currentKey = null;
 
 function buildExtra(){
+  currentKey = null;
+  if(C1){C1.destroy();C1=null;}
+  if(C2){C2.destroy();C2=null;}
   const ex=document.getElementById('extra');
   ex.innerHTML='';
   const MESES=[...new Set(DIAS.map(d=>d.slice(0,7)))];
   const SEMANAS=[];
   for(let i=0;i<DIAS.length;i+=7) SEMANAS.push(DIAS.slice(i,i+7));
-
   const agrupWrap=document.getElementById('agrup-wrap');
   agrupWrap.style.display=(modo==='mes'||modo==='periodo')?'flex':'none';
-
   if(modo==='semana'){
     const s=document.createElement('select');
     SEMANAS.forEach((sw,i)=>{
@@ -311,15 +302,19 @@ function buildExtra(){
     currentKey=DIAS[DIAS.length-1];
     render(currentKey);
   } else {
-    const d1=document.createElement('input');d1.type='date';d1.value='2026-06-01';
+    const d1=document.createElement('input');d1.type='date';
+    d1.value=DIAS[0].replaceAll('/','-');
     d1.min=DIAS[0].replaceAll('/','-');d1.max=DIAS[DIAS.length-1].replaceAll('/','-');
     const sp=document.createElement('span');sp.className='sep';sp.textContent='→';
-    const d2=document.createElement('input');d2.type='date';d2.value=DIAS[DIAS.length-1].replaceAll('/','-');
+    const d2=document.createElement('input');d2.type='date';
+    d2.value=DIAS[DIAS.length-1].replaceAll('/','-');
     d2.min=DIAS[0].replaceAll('/','-');d2.max=DIAS[DIAS.length-1].replaceAll('/','-');
-    const go=()=>{currentKey=d1.value.replaceAll('-','/')+  '|'+d2.value.replaceAll('-','/');render(currentKey);};
-    d1.onchange=go;d2.onchange=go;
-    ex.appendChild(d1);ex.appendChild(sp);ex.appendChild(d2);
-    go();
+    const btn=document.createElement('button');
+    btn.textContent='Ver';
+    btn.style.cssText='font-size:12px;padding:5px 12px;border-radius:8px;border:1px solid #d0d4cc;background:#1c2117;color:#fff;cursor:pointer;margin-left:4px';
+    const go=()=>{currentKey=d1.value.replaceAll('-','/')+'|'+d2.value.replaceAll('-','/');render(currentKey);};
+    btn.onclick=go;
+    ex.appendChild(d1);ex.appendChild(sp);ex.appendChild(d2);ex.appendChild(btn);
   }
 }
 
@@ -337,7 +332,34 @@ function clickG(btn){
   if(currentKey) render(currentKey);
 }
 
-// ── Carga del CSV ──────────────────────────────────────────────
+async function cargarStatus(){
+  try{
+    const r=await fetch(STATUS_URL+'?t='+Date.now());
+    if(!r.ok) throw new Error();
+    const s=await r.json();
+
+    // Última conexión
+    if(s.ultima_conexion_fecha && s.ultima_conexion_hora){
+      document.getElementById('st-cx').textContent=s.ultima_conexion_fecha.replaceAll('/','-')+' '+s.ultima_conexion_hora+'h';
+      document.getElementById('dot-cx').className='status-dot '+(s.conexion_ok?'ok':'err');
+    }
+
+    // Último dato CON VERTIDO (no solo cualquier dato)
+    if(s.ultimo_dato_vertido_fecha && s.ultimo_dato_vertido_hora){
+      document.getElementById('st-dt').textContent=s.ultimo_dato_vertido_fecha.replaceAll('/','-')+' '+s.ultimo_dato_vertido_hora+'h';
+      const diff=(Date.now()-new Date(s.ultimo_dato_vertido_fecha.replace(/\//g,'-')+'T'+s.ultimo_dato_vertido_hora))/86400000;
+      document.getElementById('dot-dt').className='status-dot '+(diff<3?'ok':'unk');
+    } else if(s.ultimo_dato_fecha){
+      // Fallback: si no hay campo específico de vertido, usa el último dato general
+      document.getElementById('st-dt').textContent=s.ultimo_dato_fecha.replaceAll('/','-')+' '+s.ultimo_dato_hora+'h';
+      document.getElementById('dot-dt').className='status-dot unk';
+    }
+  } catch(e){
+    document.getElementById('st-cx').textContent='Pendiente primera ejecución';
+    document.getElementById('st-dt').textContent='—';
+  }
+}
+
 async function init(){
   let txt;
   try{
@@ -346,13 +368,10 @@ async function init(){
     txt=await r.text();
   } catch(e){
     document.getElementById('vacio').style.display='block';
-    document.getElementById('estado').textContent='Sin datos todavía';
     return;
   }
-
   const filas=txt.trim().split('\n').slice(1).filter(Boolean);
   if(!filas.length){document.getElementById('vacio').style.display='block';return;}
-
   filas.forEach(l=>{
     const[fecha,hora,consumo,vertido,,coste,ingreso]=l.split(',');
     if(!RAW[fecha]) RAW[fecha]=[0,0,0,0];
@@ -363,42 +382,11 @@ async function init(){
   });
   Object.keys(RAW).forEach(k=>RAW[k]=RAW[k].map(v=>+v.toFixed(2)));
   DIAS=Object.keys(RAW).sort();
-
-  const ultima=DIAS[DIAS.length-1];
-  const hoyStr=new Date();
-  const hoy=`${hoyStr.getFullYear()}/${String(hoyStr.getMonth()+1).padStart(2,'0')}/${String(hoyStr.getDate()).padStart(2,'0')}`;
-  const esHoy=ultima===hoy;
-  document.getElementById('estado').innerHTML=esHoy
-    ?`Actualizado · último dato ${ultima.replaceAll('/','-')}`
-    :`Último dato: <span class="retraso">${ultima.replaceAll('/','-')}</span> (Datadis va 1-2 días por detrás)`;
-
   document.getElementById('app').style.display='block';
   buildExtra();
 }
 
-// Resetear zoom con doble clic en el canvas
 document.addEventListener('dblclick',e=>{if(e.target.id==='ch2'&&C2) C2.resetZoom();});
-
-async function cargarStatus() {
-  try {
-    const r = await fetch("https://raw.githubusercontent.com/Sespinps68/dashboard-energia/main/data/status.json?t=" + Date.now());
-    if (!r.ok) throw new Error();
-    const s = await r.json();
-    if (s.ultima_conexion_fecha) {
-      document.getElementById('st-cx').textContent = s.ultima_conexion_fecha.replaceAll('/','-') + ' ' + s.ultima_conexion_hora + 'h';
-      document.getElementById('dot-cx').className = 'status-dot ' + (s.conexion_ok ? 'ok' : 'err');
-    }
-    if (s.ultimo_dato_fecha) {
-      document.getElementById('st-dt').textContent = s.ultimo_dato_fecha.replaceAll('/','-') + ' ' + s.ultimo_dato_hora + 'h';
-      const diff = (Date.now() - new Date(s.ultimo_dato_fecha.replace(/\//g,'-') + 'T' + s.ultimo_dato_hora)) / 86400000;
-      document.getElementById('dot-dt').className = 'status-dot ' + (diff < 3 ? 'ok' : 'unk');
-    }
-  } catch(e) {
-    document.getElementById('st-cx').textContent = 'Pendiente primera ejecución';
-    document.getElementById('st-dt').textContent = '—';
-  }
-}
-
 cargarStatus();
 init();
 </script>
